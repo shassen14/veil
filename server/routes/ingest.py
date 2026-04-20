@@ -32,6 +32,9 @@ async def dispatch(event: Event) -> None:
     elif t == "twitch.chat.message.delete":
         await manager.broadcast({"type": "chat.message.delete", "data": {"message_id": p["message_id"]}})
 
+    elif t == "twitch.chat.clear_user":
+        await manager.broadcast({"type": "chat.clear_user", "data": {"username": p["username"]}})
+
     elif t in ("twitch.sub", "twitch.resub", "twitch.giftsub", "twitch.giftbomb"):
         alert_type = t.split(".", 1)[1]  # "sub", "resub", etc.
         await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": alert_type, **p}})

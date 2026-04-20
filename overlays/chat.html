@@ -167,6 +167,7 @@
       function _buildMessageEl(data) {
         const el = document.createElement("div");
         el.className = "msg";
+        if (data.username) el.dataset.username = data.username;
 
         const color = userColor(data.display_name, data.color);
 
@@ -270,6 +271,16 @@
         }, 500);
       }
 
+      function clearUserMessages(username) {
+        chatEl.querySelectorAll(`[data-username="${username}"]`).forEach(el => {
+          const msgId = el.dataset.id;
+          if (msgId) messageMap.delete(msgId);
+          const idx = messages.indexOf(el);
+          if (idx !== -1) messages.splice(idx, 1);
+          el.remove();
+        });
+      }
+
       function moderateMessage(id, action) {
         fetch(`/modqueue/${id}/${action}`, {
           method: "POST",
@@ -302,6 +313,7 @@
         "config.update": (data) => applyConfig(data),
         "chat.message": (data) => addMessage(data),
         "chat.message.delete": (data) => deleteMessage(data.message_id),
+        "chat.clear_user": (data) => clearUserMessages(data.username),
         "modqueue.pending": (data) => addPendingMessage(data),
         "modqueue.decision": (data) => onModqueueDecision(data),
         "modqueue.resolved": (data) => deleteMessage(data.message_id),

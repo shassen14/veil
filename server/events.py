@@ -101,6 +101,11 @@ class ChatMessageDeletePayload(BaseModel):
     platform: str = "twitch"
 
 
+class ChatClearUserPayload(BaseModel):
+    username: str
+    platform: str = "twitch"
+
+
 # ---------------------------------------------------------------------------
 # Modqueue payload shapes
 # ---------------------------------------------------------------------------
@@ -170,6 +175,7 @@ EVENT_TYPES: dict[str, type[BaseModel]] = {
     "twitch.channel_point_redeem": TwitchChannelPointRedeemPayload,
     "twitch.chat.message": TwitchChatMessagePayload,
     "twitch.chat.message.delete": ChatMessageDeletePayload,
+    "twitch.chat.clear_user": ChatClearUserPayload,
     "modqueue.pending": ModQueuePendingPayload,
     "modqueue.resolved": ModQueueResolvedPayload,
     "modqueue.update": ModQueueUpdatePayload,
