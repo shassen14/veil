@@ -17,7 +17,7 @@
 
       #chat {
         position: fixed;
-        width: 100%;
+        width: calc(100% - 10px);
         display: flex;
         flex-direction: column;
         gap: 6px;
@@ -77,13 +77,13 @@
 
       const POSITIONS = {
         "bottom-right": { bottom: "20px", right: "20px" },
-        "bottom-left":  { bottom: "20px", left: "20px"  },
-        "top-right":    { top: "20px",    right: "20px" },
-        "top-left":     { top: "20px",    left: "20px"  },
+        "bottom-left": { bottom: "20px", left: "20px" },
+        "top-right": { top: "20px", right: "20px" },
+        "top-left": { top: "20px", left: "20px" },
       };
 
       async function init() {
-        const cfg = await fetch("/config").then(r => r.json());
+        const cfg = await fetch("/config").then((r) => r.json());
         const chatCfg = cfg.chat || {};
 
         const MAX_MESSAGES = chatCfg.max_messages ?? 20;
