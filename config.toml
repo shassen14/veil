@@ -5,7 +5,7 @@ secret = "changeme"  # overridden by VEIL_SECRET env var
 
 [chat]
 max_messages = 20
-fade_timeout = 30     # seconds before a message fades, 0 = never
+fade_timeout = 0    # seconds before a message fades, 0 = never
 position = "bottom-right"
 
 [discord]
@@ -14,31 +14,31 @@ max_members = 8
 
 [alerts.sub]
 audio = "media/audio/sub.mp3"
-duration = 5
+duration = 3
 
 [alerts.resub]
 audio = "media/audio/sub.mp3"
-duration = 5
+duration = 3
 
 [alerts.giftsub]
 audio = "media/audio/sub.mp3"
-duration = 5
+duration = 3
 
 [alerts.giftbomb]
 audio = "media/audio/sub.mp3"
-duration = 6
+duration = 3
 
 [alerts.raid]
 audio = "media/audio/raid.mp3"
-duration = 8
+duration = 3
 
 [alerts.bits]
 audio = "media/audio/bits.mp3"
-duration = 5
+duration = 3
 
 [alerts.channel_point]
 audio = ""
-duration = 4
+duration = 3
 
 [scenes]
 default = "brb"
