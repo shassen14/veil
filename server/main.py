@@ -46,5 +46,6 @@ async def ws_endpoint(ws: WebSocket) -> None:
 
 
 @app.get("/")
+@app.get("/dashboard.html")
 async def dashboard() -> FileResponse:
     return FileResponse(_ROOT / "dashboard.html")
