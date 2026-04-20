@@ -96,6 +96,36 @@ class TwitchChatMessagePayload(BaseModel):
     platform: str = "twitch"
 
 
+class ChatMessageDeletePayload(BaseModel):
+    message_id: str
+    platform: str = "twitch"
+
+
+# ---------------------------------------------------------------------------
+# Modqueue payload shapes
+# ---------------------------------------------------------------------------
+
+class ModQueuePendingPayload(BaseModel):
+    message_id: str
+    username: str
+    display_name: str
+    message: str
+    color: str = ""
+    badges: list[str] = []
+    platform: str = "twitch"
+    hold_sources: list[str] = []
+
+
+class ModQueueResolvedPayload(BaseModel):
+    message_id: str
+    resolution: str  # "approved" | "denied" | "expired"
+
+
+class ModQueueUpdatePayload(BaseModel):
+    message_id: str
+    hold_sources: list[str]
+
+
 # ---------------------------------------------------------------------------
 # Discord payload shapes
 # ---------------------------------------------------------------------------
@@ -139,6 +169,10 @@ EVENT_TYPES: dict[str, type[BaseModel]] = {
     "twitch.raid": TwitchRaidPayload,
     "twitch.channel_point_redeem": TwitchChannelPointRedeemPayload,
     "twitch.chat.message": TwitchChatMessagePayload,
+    "twitch.chat.message.delete": ChatMessageDeletePayload,
+    "modqueue.pending": ModQueuePendingPayload,
+    "modqueue.resolved": ModQueueResolvedPayload,
+    "modqueue.update": ModQueueUpdatePayload,
     "discord.voice.join": DiscordVoiceJoinPayload,
     "discord.voice.leave": DiscordVoiceLeavePayload,
     "discord.voice.speaking": DiscordVoiceSpeakingPayload,

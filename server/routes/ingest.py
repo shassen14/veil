@@ -29,6 +29,9 @@ async def dispatch(event: Event) -> None:
     if t == "twitch.chat.message":
         await manager.broadcast({"type": "chat.message", "data": {**p, "platform": "twitch"}})
 
+    elif t == "twitch.chat.message.delete":
+        await manager.broadcast({"type": "chat.message.delete", "data": {"message_id": p["message_id"]}})
+
     elif t in ("twitch.sub", "twitch.resub", "twitch.giftsub", "twitch.giftbomb"):
         alert_type = t.split(".", 1)[1]  # "sub", "resub", etc.
         await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": alert_type, **p}})
@@ -41,6 +44,20 @@ async def dispatch(event: Event) -> None:
 
     elif t == "twitch.channel_point_redeem":
         await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": "channel_point", **p}})
+
+    elif t == "modqueue.pending":
+        state.pending_messages[p["message_id"]] = p
+        await manager.broadcast({"type": "modqueue.pending", "data": p})
+
+    elif t == "modqueue.resolved":
+        state.pending_messages.pop(p.get("message_id", ""), None)
+        await manager.broadcast({"type": "modqueue.resolved", "data": p})
+
+    elif t == "modqueue.update":
+        mid = p.get("message_id", "")
+        if mid in state.pending_messages:
+            state.pending_messages[mid]["hold_sources"] = p.get("hold_sources", [])
+        await manager.broadcast({"type": "modqueue.update", "data": p})
 
     elif t == "discord.voice.join":
         member = {

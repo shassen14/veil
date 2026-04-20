@@ -83,6 +83,46 @@
       #chat.hidden {
         display: none;
       }
+
+      /* Pending (held) messages */
+      .msg.pending {
+        border-left-color: #ff9f0a;
+        opacity: 0.78;
+      }
+
+      .msg.pending::before {
+        content: "> ";
+        color: #ff9f0a;
+        text-shadow: 0 0 7px rgba(255, 159, 10, 0.8);
+      }
+
+      .mod-actions {
+        display: inline-flex;
+        gap: 5px;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      .mod-btn {
+        cursor: pointer;
+        padding: 1px 5px;
+        border-radius: 2px;
+        font-family: inherit;
+        font-size: 0.8em;
+        background: transparent;
+        line-height: 1.4;
+        pointer-events: auto;
+      }
+
+      .mod-btn.approve {
+        border: 1px solid #00ff41;
+        color: #00ff41;
+      }
+
+      .mod-btn.deny {
+        border: 1px solid #ff453a;
+        color: #ff453a;
+      }
     </style>
   </head>
   <body>
@@ -92,6 +132,10 @@
     <script>
       const chatEl = document.getElementById("chat");
       const messages = [];
+      const messageMap = new Map(); // message_id → DOM element
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const secret = urlParams.get("secret") || "";
 
       const POSITIONS = {
         "bottom-right": { bottom: "20px", right: "20px" },
@@ -120,7 +164,7 @@
         return `hsl(${Math.abs(hash) % 360}, 70%, 65%)`;
       }
 
-      function addMessage(data) {
+      function _buildMessageEl(data) {
         const el = document.createElement("div");
         el.className = "msg";
 
@@ -144,19 +188,104 @@
 
         el.appendChild(author);
         el.appendChild(text);
+        return el;
+      }
+
+      function addMessage(data) {
+        if (data.message_id && messageMap.has(data.message_id)) {
+          return; // already present (e.g. pending message was approved)
+        }
+
+        const el = _buildMessageEl(data);
         chatEl.appendChild(el);
+
+        if (data.message_id) {
+          messageMap.set(data.message_id, el);
+        }
         messages.push(el);
 
         if (messages.length > MAX_MESSAGES) {
           const old = messages.shift();
+          if (old.dataset.id) messageMap.delete(old.dataset.id);
           old.remove();
         }
 
         if (FADE_TIMEOUT > 0) {
           setTimeout(() => {
             el.classList.add("fading");
-            setTimeout(() => el.remove(), 500);
+            setTimeout(() => {
+              el.remove();
+              if (data.message_id) messageMap.delete(data.message_id);
+              const idx = messages.indexOf(el);
+              if (idx !== -1) messages.splice(idx, 1);
+            }, 500);
           }, FADE_TIMEOUT * 1000);
+        }
+      }
+
+      function addPendingMessage(data) {
+        if (messageMap.has(data.message_id)) return;
+
+        const el = _buildMessageEl(data);
+        el.classList.add("pending");
+        el.dataset.id = data.message_id;
+
+        const actions = document.createElement("span");
+        actions.className = "mod-actions";
+
+        const approveBtn = document.createElement("button");
+        approveBtn.className = "mod-btn approve";
+        approveBtn.textContent = "✓";
+        approveBtn.onclick = () => moderateMessage(data.message_id, "approve");
+
+        const denyBtn = document.createElement("button");
+        denyBtn.className = "mod-btn deny";
+        denyBtn.textContent = "✗";
+        denyBtn.onclick = () => moderateMessage(data.message_id, "reject");
+
+        actions.appendChild(approveBtn);
+        actions.appendChild(denyBtn);
+        el.appendChild(actions);
+
+        chatEl.appendChild(el);
+        messageMap.set(data.message_id, el);
+        messages.push(el);
+
+        if (messages.length > MAX_MESSAGES) {
+          const old = messages.shift();
+          if (old.dataset.id) messageMap.delete(old.dataset.id);
+          old.remove();
+        }
+      }
+
+      function deleteMessage(id) {
+        const el = messageMap.get(id);
+        if (!el) return;
+        el.classList.add("fading");
+        setTimeout(() => {
+          el.remove();
+          messageMap.delete(id);
+          const idx = messages.indexOf(el);
+          if (idx !== -1) messages.splice(idx, 1);
+        }, 500);
+      }
+
+      function moderateMessage(id, action) {
+        fetch(`/modqueue/${id}/${action}`, {
+          method: "POST",
+          headers: { Authorization: "Bearer " + secret },
+        }).catch(() => {});
+      }
+
+      function onModqueueDecision(data) {
+        const el = messageMap.get(data.message_id);
+        if (!el) return;
+        if (data.decision === "approve") {
+          el.classList.remove("pending");
+          const actions = el.querySelector(".mod-actions");
+          if (actions) actions.remove();
+        } else {
+          deleteMessage(data.message_id);
         }
       }
 
@@ -166,9 +295,16 @@
         "state.sync": (data) => {
           if (data.config) applyConfig(data.config);
           if (!data.chat_visible) chatEl.classList.add("hidden");
+          if (data.pending_messages) {
+            data.pending_messages.forEach(addPendingMessage);
+          }
         },
         "config.update": (data) => applyConfig(data),
         "chat.message": (data) => addMessage(data),
+        "chat.message.delete": (data) => deleteMessage(data.message_id),
+        "modqueue.pending": (data) => addPendingMessage(data),
+        "modqueue.decision": (data) => onModqueueDecision(data),
+        "modqueue.resolved": (data) => deleteMessage(data.message_id),
         "overlay.toggle": (data) => {
           if (data.overlay === "chat") {
             chatEl.classList.toggle("hidden", !data.visible);
