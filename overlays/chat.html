@@ -93,16 +93,25 @@
         Object.assign(chatEl.style, pos);
       }
 
+      function userColor(name, twitchColor) {
+        if (twitchColor) return twitchColor;
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+          hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return `hsl(${Math.abs(hash) % 360}, 70%, 65%)`;
+      }
+
       function addMessage(data) {
         const el = document.createElement("div");
         el.className = "msg";
 
         const author = document.createElement("span");
         author.className = "author";
-        author.style.color = data.color || "#fff";
-        author.textContent = data.display_name;
+        author.style.color = userColor(data.display_name, data.color);
+        author.textContent = data.display_name + ":";
 
-        const text = document.createTextNode(data.message);
+        const text = document.createTextNode(" " + data.message);
 
         el.appendChild(author);
         el.appendChild(text);
