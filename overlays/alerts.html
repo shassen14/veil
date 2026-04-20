@@ -113,7 +113,14 @@
       return "";
     }
 
-    function showAlert(data) {
+    const queue = [];
+    let showing = false;
+
+    function processQueue() {
+      if (showing || queue.length === 0) return;
+      showing = true;
+
+      const data = queue.shift();
       const type = data.alert_type;
       const card = document.createElement("div");
       card.className = `alert-card alert-${type}`;
@@ -128,8 +135,18 @@
 
       setTimeout(() => {
         card.classList.add("out");
-        setTimeout(() => card.remove(), 400);
+        setTimeout(() => {
+          card.remove();
+          showing = false;
+          processQueue();
+        }, 400);
       }, getDuration(type));
+    }
+
+    function enqueueAlert(data) {
+      const max = alertsCfg.queue_max ?? 10;
+      if (queue.length < max) queue.push(data);
+      processQueue();
     }
 
     let alertsCfg = {};
@@ -145,7 +162,7 @@
     createVeilSocket({
       "state.sync": (data) => { if (data.config) alertsCfg = data.config.alerts || {}; },
       "config.update": (data) => { alertsCfg = data.alerts || {}; },
-      "alert.trigger": (data) => showAlert(data),
+      "alert.trigger": (data) => enqueueAlert(data),
     });
   </script>
 </body>

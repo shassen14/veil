@@ -17,6 +17,7 @@ width = 600
 height = 180
 x = 0
 y = 0
+queue_max = 10
 
 [alerts.sub]
 audio = "media/audio/sub.mp3"
