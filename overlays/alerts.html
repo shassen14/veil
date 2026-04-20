@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: "Inter", "Segoe UI", sans-serif; overflow: hidden; }
+    html, body { width: 100%; height: 100%; background: transparent; font-family: "Inter", "Segoe UI", sans-serif; overflow: hidden; }
 
     #alert-container {
       position: fixed;
+      inset: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
       gap: 12px;
       pointer-events: none;
@@ -132,36 +133,17 @@
 
     let alertsCfg = {};
 
-    function applyLayout(alerts) {
-      const { x = 0, y = 0, width = 600, height = 180 } = alerts;
-      container.style.left   = x + "px";
-      container.style.top    = y + "px";
-      container.style.width  = width + "px";
-      container.style.height = height + "px";
-    }
-
     fetch("/config")
       .then(r => r.json())
-      .then(cfg => {
-        alertsCfg = cfg.alerts || {};
-        applyLayout(alertsCfg);
-      });
+      .then(cfg => { alertsCfg = cfg.alerts || {}; });
 
     function getDuration(type) {
       return (alertsCfg[type]?.duration ?? 3) * 1000;
     }
 
     createVeilSocket({
-      "state.sync": (data) => {
-        if (data.config) {
-          alertsCfg = data.config.alerts || {};
-          applyLayout(alertsCfg);
-        }
-      },
-      "config.update": (data) => {
-        alertsCfg = data.alerts || {};
-        applyLayout(alertsCfg);
-      },
+      "state.sync": (data) => { if (data.config) alertsCfg = data.config.alerts || {}; },
+      "config.update": (data) => { alertsCfg = data.alerts || {}; },
       "alert.trigger": (data) => showAlert(data),
     });
   </script>
