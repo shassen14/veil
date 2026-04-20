@@ -39,19 +39,50 @@ Repeat for each overlay you want. Each one opens its own WebSocket connection �
 
 ---
 
-## Recommended scene layout
+## Scene layouts
 
-Add all three overlays to a shared **Scene** (or use OBS scene collections) so they're always visible:
+### just_chatting
 
-```
-Scene: Live
-├── [Video capture / game capture]
-├── Browser: veil-alerts      (full canvas, 1920×1080)
-├── Browser: veil-chat        (full canvas, 1920×1080)
-└── Browser: veil-discord-vc  (full canvas, 1920×1080)
-```
+Webcam fills the canvas. Alerts sit on top for subs/raids.
 
-All overlays use `position: fixed` and `background: transparent`, so stacking them full-canvas is the intended layout — each one manages its own position internally.
+| Source | Type | W | H | X | Y |
+|---|---|---|---|---|---|
+| `veil-alerts` | Browser | 1920 | 1080 | 0 | 0 |
+| `webcam` | Video Capture | 1920 | 1080 | 0 | 0 |
+
+---
+
+### coding
+
+Right sidebar (340px wide). Screen fills the left 1580px at full height.
+
+| Source | Type | W | H | X | Y |
+|---|---|---|---|---|---|
+| `veil-alerts` | Browser | 1920 | 1080 | 0 | 0 |
+| `veil-discord-vc` | Browser | 340 | 225 | 1580 | 855 |
+| `veil-chat` | Browser | 340 | 585 | 1580 | 270 |
+| `webcam` | Video Capture | 480 | 270 | 1580 | 0 |
+| `screen` | Display Capture | 1580 | 1080 | 0 | 0 |
+
+Sidebar stack top→bottom: webcam 270px · chat 585px · discord 225px = 1080px.
+
+**Webcam crop** — the webcam source is captured at 480×270 then cropped to 340px wide:
+1. Right-click the webcam source → **Filters** → **+** → **Crop/Pad**
+2. Set Left: `70`, Right: `70`, Top: `0`, Bottom: `0`
+
+**Screen crop** (remove macOS menu bar):
+1. Right-click the screen source → **Filters** → **+** → **Crop/Pad**
+2. Set Top: `25`
+
+**Browser source settings** (all three overlays):
+- Width/Height: match the table above — do NOT use full canvas
+- Check **Shutdown source when not visible**
+- Uncheck **Refresh browser when scene becomes active**
+
+**Discord layout** auto-adjusts by member count:
+- 1–2 members → horizontal pill per member
+- 3–4 members → 2×2 grid
+- 5–8 members → 4×2 grid
 
 ---
 
