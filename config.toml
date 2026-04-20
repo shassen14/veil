@@ -12,6 +12,12 @@ position = "bottom-right"
 voice_channel_id = ""
 max_members = 8
 
+[alerts]
+width = 600
+height = 180
+x = 0
+y = 40
+
 [alerts.sub]
 audio = "media/audio/sub.mp3"
 duration = 3
