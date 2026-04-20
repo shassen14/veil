@@ -120,11 +120,20 @@
 
       container.appendChild(card);
 
-      const duration = 6000; // ms — will be driven by config later
       setTimeout(() => {
         card.classList.add("out");
         setTimeout(() => card.remove(), 400);
-      }, duration);
+      }, getDuration(type));
+    }
+
+    let alertsCfg = {};
+
+    fetch("/config")
+      .then(r => r.json())
+      .then(cfg => { alertsCfg = cfg.alerts || {}; });
+
+    function getDuration(type) {
+      return (alertsCfg[type]?.duration ?? 3) * 1000;
     }
 
     createVeilSocket({

@@ -1,114 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: transparent;
-      font-family: "Inter", "Segoe UI", sans-serif;
-      font-size: 18px;
-      overflow: hidden;
-    }
-
-    #chat {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: calc(100% - 40px);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .msg {
-      background: rgba(0, 0, 0, 0.65);
-      border-radius: 8px;
-      padding: 6px 10px;
-      color: #fff;
-      line-height: 1.4;
-      word-break: break-word;
-      animation: fadeIn 0.2s ease;
-      transition: opacity 0.5s ease;
-    }
-
-    .msg.fading { opacity: 0; }
-
-    .msg .author {
-      font-weight: 700;
-      margin-right: 6px;
-    }
-
-    .msg .badge {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      vertical-align: middle;
-      margin-right: 3px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    #chat.hidden { display: none; }
-  </style>
-</head>
-<body>
-  <div id="chat"></div>
-
-  <script src="/overlays/static/js/veil.js"></script>
-  <script>
-    const MAX_MESSAGES = 20;
-    const FADE_TIMEOUT = 30; // seconds, 0 = never
-
-    const chatEl = document.getElementById("chat");
-    const messages = [];
-
-    function addMessage(data) {
-      const el = document.createElement("div");
-      el.className = "msg";
-
-      const author = document.createElement("span");
-      author.className = "author";
-      author.style.color = data.color || "#fff";
-      author.textContent = data.display_name;
-
-      const text = document.createTextNode(data.message);
-
-      el.appendChild(author);
-      el.appendChild(text);
-      chatEl.appendChild(el);
-      messages.push(el);
-
-      if (messages.length > MAX_MESSAGES) {
-        const old = messages.shift();
-        old.remove();
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: transparent;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        font-size: 24px;
+        overflow: hidden;
       }
 
-      if (FADE_TIMEOUT > 0) {
-        setTimeout(() => {
-          el.classList.add("fading");
-          setTimeout(() => el.remove(), 500);
-        }, FADE_TIMEOUT * 1000);
+      #chat {
+        position: fixed;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
-    }
 
-    createVeilSocket({
-      "state.sync": (data) => {
-        if (!data.chat_visible) chatEl.classList.add("hidden");
-      },
-      "chat.message": (data) => addMessage(data),
-      "overlay.toggle": (data) => {
-        if (data.overlay === "chat") {
-          chatEl.classList.toggle("hidden", !data.visible);
+      .msg {
+        background: rgba(0, 0, 0, 0.65);
+        border-radius: 8px;
+        padding: 6px 10px;
+        color: #fff;
+        line-height: 1.4;
+        word-break: break-word;
+        animation: fadeIn 0.2s ease;
+        transition: opacity 0.5s ease;
+      }
+
+      .msg.fading {
+        opacity: 0;
+      }
+
+      .msg .author {
+        font-weight: 700;
+        margin-right: 6px;
+      }
+
+      .msg .badge {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-right: 3px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
         }
-      },
-      "chat.source.toggle": (data) => {
-        // future: filter messages by platform
-      },
-    });
-  </script>
-</body>
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #chat.hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chat"></div>
+
+    <script src="/overlays/static/js/veil.js"></script>
+    <script>
+      const chatEl = document.getElementById("chat");
+      const messages = [];
+
+      const POSITIONS = {
+        "bottom-right": { bottom: "20px", right: "20px" },
+        "bottom-left":  { bottom: "20px", left: "20px"  },
+        "top-right":    { top: "20px",    right: "20px" },
+        "top-left":     { top: "20px",    left: "20px"  },
+      };
+
+      async function init() {
+        const cfg = await fetch("/config").then(r => r.json());
+        const chatCfg = cfg.chat || {};
+
+        const MAX_MESSAGES = chatCfg.max_messages ?? 20;
+        const FADE_TIMEOUT = chatCfg.fade_timeout ?? 0;
+
+        const pos = POSITIONS[chatCfg.position] || POSITIONS["bottom-right"];
+        Object.assign(chatEl.style, pos);
+
+        function addMessage(data) {
+          const el = document.createElement("div");
+          el.className = "msg";
+
+          const author = document.createElement("span");
+          author.className = "author";
+          author.style.color = data.color || "#fff";
+          author.textContent = data.display_name;
+
+          const text = document.createTextNode(data.message);
+
+          el.appendChild(author);
+          el.appendChild(text);
+          chatEl.appendChild(el);
+          messages.push(el);
+
+          if (messages.length > MAX_MESSAGES) {
+            const old = messages.shift();
+            old.remove();
+          }
+
+          if (FADE_TIMEOUT > 0) {
+            setTimeout(() => {
+              el.classList.add("fading");
+              setTimeout(() => el.remove(), 500);
+            }, FADE_TIMEOUT * 1000);
+          }
+        }
+
+        createVeilSocket({
+          "state.sync": (data) => {
+            if (!data.chat_visible) chatEl.classList.add("hidden");
+          },
+          "chat.message": (data) => addMessage(data),
+          "overlay.toggle": (data) => {
+            if (data.overlay === "chat") {
+              chatEl.classList.toggle("hidden", !data.visible);
+            }
+          },
+          "chat.source.toggle": (_data) => {
+            // future: filter messages by platform
+          },
+        });
+      }
+
+      init();
+    </script>
+  </body>
 </html>
