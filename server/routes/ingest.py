@@ -27,7 +27,7 @@ async def dispatch(event: Event) -> None:
     p = event.payload
 
     if t == "twitch.chat.message":
-        await manager.broadcast({"type": "chat.message", "data": {**p, "platform": "twitch"}})
+        await manager.broadcast({"type": "chat.message", "data": {**p, "source": "twitch"}})
 
     elif t == "twitch.chat.message.delete":
         await manager.broadcast({"type": "chat.message.delete", "data": {"message_id": p["message_id"]}})
