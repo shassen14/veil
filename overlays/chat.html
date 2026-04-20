@@ -82,62 +82,64 @@
         "top-left": { top: "20px", left: "20px" },
       };
 
-      async function init() {
-        const cfg = await fetch("/config").then((r) => r.json());
+      let MAX_MESSAGES = 20;
+      let FADE_TIMEOUT = 0;
+
+      function applyConfig(cfg) {
         const chatCfg = cfg.chat || {};
-
-        const MAX_MESSAGES = chatCfg.max_messages ?? 20;
-        const FADE_TIMEOUT = chatCfg.fade_timeout ?? 0;
-
+        MAX_MESSAGES = chatCfg.max_messages ?? 20;
+        FADE_TIMEOUT = chatCfg.fade_timeout ?? 0;
         const pos = POSITIONS[chatCfg.position] || POSITIONS["bottom-right"];
         Object.assign(chatEl.style, pos);
-
-        function addMessage(data) {
-          const el = document.createElement("div");
-          el.className = "msg";
-
-          const author = document.createElement("span");
-          author.className = "author";
-          author.style.color = data.color || "#fff";
-          author.textContent = data.display_name;
-
-          const text = document.createTextNode(data.message);
-
-          el.appendChild(author);
-          el.appendChild(text);
-          chatEl.appendChild(el);
-          messages.push(el);
-
-          if (messages.length > MAX_MESSAGES) {
-            const old = messages.shift();
-            old.remove();
-          }
-
-          if (FADE_TIMEOUT > 0) {
-            setTimeout(() => {
-              el.classList.add("fading");
-              setTimeout(() => el.remove(), 500);
-            }, FADE_TIMEOUT * 1000);
-          }
-        }
-
-        createVeilSocket({
-          "state.sync": (data) => {
-            if (!data.chat_visible) chatEl.classList.add("hidden");
-          },
-          "chat.message": (data) => addMessage(data),
-          "overlay.toggle": (data) => {
-            if (data.overlay === "chat") {
-              chatEl.classList.toggle("hidden", !data.visible);
-            }
-          },
-          "chat.source.toggle": (_data) => {
-            // future: filter messages by platform
-          },
-        });
       }
 
-      init();
+      function addMessage(data) {
+        const el = document.createElement("div");
+        el.className = "msg";
+
+        const author = document.createElement("span");
+        author.className = "author";
+        author.style.color = data.color || "#fff";
+        author.textContent = data.display_name;
+
+        const text = document.createTextNode(data.message);
+
+        el.appendChild(author);
+        el.appendChild(text);
+        chatEl.appendChild(el);
+        messages.push(el);
+
+        if (messages.length > MAX_MESSAGES) {
+          const old = messages.shift();
+          old.remove();
+        }
+
+        if (FADE_TIMEOUT > 0) {
+          setTimeout(() => {
+            el.classList.add("fading");
+            setTimeout(() => el.remove(), 500);
+          }, FADE_TIMEOUT * 1000);
+        }
+      }
+
+      fetch("/config").then((r) => r.json()).then(applyConfig);
+
+      createVeilSocket({
+        "state.sync": (data) => {
+          if (data.config) applyConfig(data.config);
+          if (!data.chat_visible) chatEl.classList.add("hidden");
+        },
+        "config.update": (data) => applyConfig(data),
+        "chat.message": (data) => addMessage(data),
+        "overlay.toggle": (data) => {
+          if (data.overlay === "chat") {
+            chatEl.classList.toggle("hidden", !data.visible);
+          }
+        },
+        "chat.source.toggle": (_data) => {
+          // future: filter messages by platform
+        },
+      });
     </script>
   </body>
 </html>

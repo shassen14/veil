@@ -15,4 +15,10 @@ def load() -> dict:
     return cfg
 
 
+def reload() -> None:
+    new = load()
+    config.clear()
+    config.update(new)
+
+
 config = load()

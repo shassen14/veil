@@ -1,17 +1,46 @@
+import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import config
+from .config import config, reload as reload_config
 from .routes import alerts, chat, ingest, scenes, status, test
 from .state import state
 from .ws_manager import manager
 
-app = FastAPI(title="veil", version="0.1.0")
-
 _ROOT = Path(__file__).parent.parent
+_CONFIG_PATH = _ROOT / "config.toml"
+
+
+def _public_config() -> dict:
+    return {k: v for k, v in config.items() if k != "server"}
+
+
+async def _watch_config() -> None:
+    mtime = _CONFIG_PATH.stat().st_mtime
+    while True:
+        await asyncio.sleep(2)
+        try:
+            new_mtime = _CONFIG_PATH.stat().st_mtime
+        except OSError:
+            continue
+        if new_mtime != mtime:
+            mtime = new_mtime
+            reload_config()
+            await manager.broadcast({"type": "config.update", "data": _public_config()})
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    task = asyncio.create_task(_watch_config())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="veil", version="0.1.0", lifespan=lifespan)
 
 # Serve overlay HTML + assets at /overlays/*
 app.mount("/overlays", StaticFiles(directory=_ROOT / "overlays"), name="overlays")
@@ -36,6 +65,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
             "chat_visible": state.chat_visible,
             "chat_sources": state.chat_sources,
             "discord_members": state.discord_members,
+            "config": _public_config(),
         },
     })
     try:

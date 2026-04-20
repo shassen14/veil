@@ -137,6 +137,8 @@
     }
 
     createVeilSocket({
+      "state.sync": (data) => { if (data.config) alertsCfg = data.config.alerts || {}; },
+      "config.update": (data) => { alertsCfg = data.alerts || {}; },
       "alert.trigger": (data) => showAlert(data),
     });
   </script>
