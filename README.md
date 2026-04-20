@@ -2,7 +2,7 @@
 
 Stream overlay server. Runs on a Raspberry Pi, serves browser sources to OBS on your streaming computer.
 
-Handles chat aggregation (Twitch + YouTube), alert animations (subs, raids, bits, etc.), Discord voice channel display, and scene switching. Receives events from `boneless_couch` via HTTP POST and pushes updates to OBS browser sources over WebSocket.
+Handles chat aggregation (Twitch + YouTube), alert animations (subs, raids, bits, etc.), and Discord voice channel display. Receives events from `boneless_couch` via HTTP POST and pushes updates to OBS browser sources over WebSocket.
 
 ---
 
@@ -77,7 +77,7 @@ Recommended size: 1920×1080, transparent background. The overlays connect as so
 
 ## Testing Off-Stream
 
-Open `http://<pi-ip>:8002/` on any device. The dashboard lets you fire test alerts, send fake chat messages, simulate Discord voice joins, and switch scenes — without `boneless_couch` running.
+Open `http://<pi-ip>:8002/` on any device. The dashboard lets you fire test alerts, send fake chat messages, and simulate Discord voice joins — without `boneless_couch` running.
 
 You can also use curl:
 
@@ -88,8 +88,6 @@ curl -X POST http://<pi-ip>:8002/test/alert/raid
 # send a chat message
 curl -X POST "http://<pi-ip>:8002/test/chat?message=hello"
 
-# switch scene
-curl -X POST http://<pi-ip>:8002/scene/coding
 ```
 
 ---
@@ -112,7 +110,6 @@ Full event type list and payload shapes: [`server/events.py`](server/events.py) 
 ## helm Integration
 
 ```
-POST /scene/:name           — switch scene
 POST /alert/:type           — fire alert
 POST /chat/toggle           — show/hide chat
 GET  /status                — current state

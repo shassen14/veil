@@ -130,15 +130,6 @@
   </div>
 
   <div class="card">
-    <h2>Scenes</h2>
-    <button onclick="fire('/scene/coding')">Switch → coding</button>
-    <button onclick="fire('/scene/game')">Switch → game</button>
-    <button onclick="fire('/scene/facecam_main')">Switch → facecam_main</button>
-    <button onclick="fire('/scene/brb')">Switch → brb</button>
-    <button onclick="fire('/scene/outro')">Switch → outro</button>
-  </div>
-
-  <div class="card">
     <h2>Overlay URLs (for OBS)</h2>
     <p style="color:#666; font-size:12px; line-height:1.8;">
       Add as Browser Source in OBS:<br>
@@ -164,7 +155,6 @@
       const r = await fetch("/status");
       const d = await r.json();
       document.getElementById("status-box").textContent =
-        `scene:        ${d.scene}\n` +
         `chat:         ${d.chat_visible ? "visible" : "hidden"}\n` +
         `sources:      ${JSON.stringify(d.chat_sources)}\n` +
         `discord vc:   ${d.discord_members.length} member(s)\n` +

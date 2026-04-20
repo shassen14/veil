@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import config, reload as reload_config
-from .routes import alerts, chat, ingest, scenes, status, test
+from .routes import alerts, chat, ingest, status, test
 from .state import state
 from .ws_manager import manager
 
@@ -47,7 +47,6 @@ app.mount("/overlays", StaticFiles(directory=_ROOT / "overlays"), name="overlays
 
 # API routes
 app.include_router(ingest.router)
-app.include_router(scenes.router)
 app.include_router(alerts.router)
 app.include_router(chat.router)
 app.include_router(status.router)
@@ -61,7 +60,6 @@ async def ws_endpoint(ws: WebSocket) -> None:
     await ws.send_json({
         "type": "state.sync",
         "data": {
-            "scene": state.scene,
             "chat_visible": state.chat_visible,
             "chat_sources": state.chat_sources,
             "discord_members": state.discord_members,
