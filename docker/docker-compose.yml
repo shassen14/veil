@@ -1,0 +1,13 @@
+services:
+  veil:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8002:8002"
+    env_file:
+      - ../.env
+    volumes:
+      - ../config.toml:/app/config.toml:ro   # edit config without rebuild
+      - ../media:/app/media                   # audio/clips survive rebuilds
+    restart: unless-stopped

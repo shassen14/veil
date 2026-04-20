@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>veil — dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f0f; color: #e0e0e0; font-family: "Inter", "Segoe UI", sans-serif; font-size: 14px; padding: 32px; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: #666; margin-bottom: 32px; font-size: 13px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 14px; }
+
+    button {
+      display: block;
+      width: 100%;
+      padding: 9px 14px;
+      margin-bottom: 8px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: #252525;
+      color: #e0e0e0;
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    button:hover { background: #2f2f2f; }
+    button:last-child { margin-bottom: 0; }
+
+    .btn-raid   { border-color: #ff6b35; }
+    .btn-sub    { border-color: #9147ff; }
+    .btn-bits   { border-color: #f5c518; }
+    .btn-chat   { border-color: #1e90ff; }
+    .btn-danger { border-color: #e74c3c; }
+
+    #status-box {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      white-space: pre;
+    }
+
+    .ws-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #e74c3c;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .ws-dot.connected { background: #43b581; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    input[type=text] {
+      width: 100%;
+      padding: 8px 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>veil</h1>
+<p class="subtitle"><span class="ws-dot" id="ws-dot"></span><span id="ws-label">connecting…</span></p>
+
+<div id="status-box">loading status…</div>
+
+<div class="grid">
+
+  <div class="card">
+    <h2>Alerts</h2>
+    <button class="btn-sub"  onclick="fire('/test/alert/sub')">▶ Sub</button>
+    <button class="btn-sub"  onclick="fire('/test/alert/resub')">▶ Resub (6 months)</button>
+    <button class="btn-sub"  onclick="fire('/test/alert/giftsub')">▶ Gift Sub</button>
+    <button class="btn-sub"  onclick="fire('/test/alert/giftbomb')">▶ Gift Bomb (×10)</button>
+    <button class="btn-raid" onclick="fire('/test/alert/raid')">▶ Raid (42 viewers)</button>
+    <button class="btn-bits" onclick="fire('/test/alert/bits')">▶ Bits (500)</button>
+    <button             onclick="fire('/test/alert/channel_point')">▶ Channel Point Redeem</button>
+  </div>
+
+  <div class="card">
+    <h2>Chat</h2>
+    <input type="text" id="chat-msg" placeholder="Test message…" value="Hello from the test dashboard!">
+    <button class="btn-chat" onclick="sendChat()">▶ Send Chat Message</button>
+    <button onclick="fire('/chat/toggle')">Toggle Chat Visibility</button>
+    <button onclick="fire('/chat/source/twitch?enabled=true')">Enable Twitch Source</button>
+    <button onclick="fire('/chat/source/twitch?enabled=false')">Disable Twitch Source</button>
+  </div>
+
+  <div class="card">
+    <h2>Discord Voice</h2>
+    <input type="text" id="dc-name" placeholder="Display name…" value="GuestUser">
+    <button onclick="fireWithName('/test/discord/join', 'dc-name')">▶ Join Voice</button>
+    <button onclick="fireWithName('/test/discord/leave', 'dc-name')">Leave Voice</button>
+    <button onclick="fireWithNameAndParam('/test/discord/speaking', 'dc-name', 'speaking=true')">Speaking ON</button>
+    <button onclick="fireWithNameAndParam('/test/discord/speaking', 'dc-name', 'speaking=false')">Speaking OFF</button>
+  </div>
+
+  <div class="card">
+    <h2>Scenes</h2>
+    <button onclick="fire('/scene/coding')">Switch → coding</button>
+    <button onclick="fire('/scene/game')">Switch → game</button>
+    <button onclick="fire('/scene/facecam_main')">Switch → facecam_main</button>
+    <button onclick="fire('/scene/brb')">Switch → brb</button>
+    <button onclick="fire('/scene/outro')">Switch → outro</button>
+  </div>
+
+  <div class="card">
+    <h2>Overlay URLs (for OBS)</h2>
+    <p style="color:#666; font-size:12px; line-height:1.8;">
+      Add as Browser Source in OBS:<br>
+      <code id="url-chat"></code><br>
+      <code id="url-alerts"></code><br>
+      <code id="url-discord"></code>
+    </p>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const base = window.location.origin;
+  document.getElementById("url-chat").textContent    = `${base}/overlays/chat.html`;
+  document.getElementById("url-alerts").textContent  = `${base}/overlays/alerts.html`;
+  document.getElementById("url-discord").textContent = `${base}/overlays/discord_vc.html`;
+
+  // Status polling
+  async function refreshStatus() {
+    try {
+      const r = await fetch("/status");
+      const d = await r.json();
+      document.getElementById("status-box").textContent =
+        `scene:        ${d.scene}\n` +
+        `chat:         ${d.chat_visible ? "visible" : "hidden"}\n` +
+        `sources:      ${JSON.stringify(d.chat_sources)}\n` +
+        `discord vc:   ${d.discord_members.length} member(s)\n` +
+        `ws clients:   ${d.ws_connections}`;
+    } catch {
+      document.getElementById("status-box").textContent = "could not reach veil server";
+    }
+  }
+  refreshStatus();
+  setInterval(refreshStatus, 3000);
+
+  // WebSocket status indicator
+  const wsUrl = `ws://${window.location.host}/ws`;
+  const dot = document.getElementById("ws-dot");
+  const label = document.getElementById("ws-label");
+
+  function connectWS() {
+    const ws = new WebSocket(wsUrl);
+    ws.onopen  = () => { dot.classList.add("connected"); label.textContent = "connected"; };
+    ws.onclose = () => { dot.classList.remove("connected"); label.textContent = "disconnected"; setTimeout(connectWS, 3000); };
+  }
+  connectWS();
+
+  // Helpers
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2000);
+  }
+
+  async function fire(url) {
+    const r = await fetch(url, { method: "POST" });
+    const d = await r.json();
+    toast(d.ok ? `✓ ${url.split("/").pop()}` : `✗ error`);
+    refreshStatus();
+  }
+
+  async function sendChat() {
+    const msg = document.getElementById("chat-msg").value;
+    const r = await fetch(`/test/chat?message=${encodeURIComponent(msg)}`, { method: "POST" });
+    const d = await r.json();
+    toast(d.ok ? "✓ chat sent" : "✗ error");
+  }
+
+  async function fireWithName(url, inputId) {
+    const name = document.getElementById(inputId).value || "GuestUser";
+    await fire(`${url}?display_name=${encodeURIComponent(name)}`);
+  }
+
+  async function fireWithNameAndParam(url, inputId, extra) {
+    const name = document.getElementById(inputId).value || "GuestUser";
+    await fire(`${url}?display_name=${encodeURIComponent(name)}&${extra}`);
+  }
+</script>
+
+</body>
+</html>

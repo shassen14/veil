@@ -1,0 +1,44 @@
+[server]
+host = "0.0.0.0"
+port = 8002
+secret = "changeme"  # overridden by VEIL_SECRET env var
+
+[chat]
+max_messages = 20
+fade_timeout = 30     # seconds before a message fades, 0 = never
+position = "bottom-right"
+
+[discord]
+voice_channel_id = ""
+max_members = 8
+
+[alerts.sub]
+audio = "media/audio/sub.mp3"
+duration = 5
+
+[alerts.resub]
+audio = "media/audio/sub.mp3"
+duration = 5
+
+[alerts.giftsub]
+audio = "media/audio/sub.mp3"
+duration = 5
+
+[alerts.giftbomb]
+audio = "media/audio/sub.mp3"
+duration = 6
+
+[alerts.raid]
+audio = "media/audio/raid.mp3"
+duration = 8
+
+[alerts.bits]
+audio = "media/audio/bits.mp3"
+duration = 5
+
+[alerts.channel_point]
+audio = ""
+duration = 4
+
+[scenes]
+default = "brb"

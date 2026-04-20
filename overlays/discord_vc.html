@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: "Inter", "Segoe UI", sans-serif; overflow: hidden; }
+
+    #vc-strip {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: opacity 0.5s ease;
+    }
+
+    #vc-strip.empty { opacity: 0; pointer-events: none; }
+
+    .member {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 30px;
+      padding: 6px 14px 6px 6px;
+      border: 2px solid transparent;
+      transition: border-color 0.15s ease;
+    }
+
+    .member.speaking {
+      border-color: #43b581;
+    }
+
+    .member.muted {
+      opacity: 0.5;
+    }
+
+    .member .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #36393f;
+      object-fit: cover;
+    }
+
+    .member .name {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .member .mic-off {
+      margin-left: 4px;
+      font-size: 12px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div id="vc-strip" class="empty"></div>
+
+  <script src="/overlays/static/js/veil.js"></script>
+  <script>
+    const strip = document.getElementById("vc-strip");
+
+    function render(members) {
+      strip.innerHTML = "";
+      strip.classList.toggle("empty", members.length === 0);
+
+      members.forEach((m) => {
+        const el = document.createElement("div");
+        el.className = `member${m.speaking ? " speaking" : ""}${m.muted ? " muted" : ""}`;
+        el.dataset.userId = m.user_id;
+
+        const img = document.createElement("img");
+        img.className = "avatar";
+        img.src = m.avatar_url || "/overlays/static/img/default_avatar.png";
+        img.alt = m.display_name;
+        img.onerror = () => { img.src = "/overlays/static/img/default_avatar.png"; };
+
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = m.display_name;
+
+        el.appendChild(img);
+        el.appendChild(name);
+
+        if (m.muted) {
+          const mic = document.createElement("span");
+          mic.className = "mic-off";
+          mic.textContent = "🔇";
+          el.appendChild(mic);
+        }
+
+        strip.appendChild(el);
+      });
+    }
+
+    createVeilSocket({
+      "state.sync": (data) => render(data.discord_members || []),
+      "discord.voice.update": (data) => render(data.members || []),
+    });
+  </script>
+</body>
+</html>
