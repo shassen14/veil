@@ -47,5 +47,8 @@ duration = 3
 audio = ""
 duration = 3
 
+[alerts.follower]
+duration = 3
+
 [scenes]
 default = "brb"

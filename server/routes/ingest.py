@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 
 from ..config import config
 from ..events import Event
+from ..media import pick_audio, pick_clip
 from ..state import state
 from ..ws_manager import manager
 
@@ -37,16 +38,19 @@ async def dispatch(event: Event) -> None:
 
     elif t in ("twitch.sub", "twitch.resub", "twitch.giftsub", "twitch.giftbomb"):
         alert_type = t.split(".", 1)[1]  # "sub", "resub", etc.
-        await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": alert_type, **p}})
+        await manager.broadcast({"type": "alert.trigger", "data": _alert_data(alert_type, p)})
 
     elif t == "twitch.bits":
-        await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": "bits", **p}})
+        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("bits", p)})
 
     elif t == "twitch.raid":
-        await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": "raid", **p}})
+        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("raid", p)})
 
     elif t == "twitch.channel_point_redeem":
-        await manager.broadcast({"type": "alert.trigger", "data": {"alert_type": "channel_point", **p}})
+        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("channel_point", p)})
+
+    elif t == "twitch.follower":
+        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("follower", p)})
 
     elif t == "modqueue.pending":
         state.pending_messages[p["message_id"]] = p
@@ -93,3 +97,12 @@ async def dispatch(event: Event) -> None:
 
 async def _push_discord_voice() -> None:
     await manager.broadcast({"type": "discord.voice.update", "data": {"members": state.discord_members}})
+
+
+def _alert_data(alert_type: str, payload: dict) -> dict:
+    data: dict = {"alert_type": alert_type, **payload}
+    if clip_url := pick_clip(alert_type):
+        data["clip_url"] = clip_url
+    if audio_url := pick_audio(alert_type):
+        data["audio_url"] = audio_url
+    return data

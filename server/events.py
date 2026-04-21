@@ -85,6 +85,11 @@ class TwitchChannelPointRedeemPayload(BaseModel):
     user_input: str = ""
 
 
+class TwitchFollowerPayload(BaseModel):
+    username: str
+    display_name: str
+
+
 class TwitchChatMessagePayload(BaseModel):
     username: str
     display_name: str
@@ -173,6 +178,7 @@ EVENT_TYPES: dict[str, type[BaseModel]] = {
     "twitch.bits": TwitchBitsPayload,
     "twitch.raid": TwitchRaidPayload,
     "twitch.channel_point_redeem": TwitchChannelPointRedeemPayload,
+    "twitch.follower": TwitchFollowerPayload,
     "twitch.chat.message": TwitchChatMessagePayload,
     "twitch.chat.message.delete": ChatMessageDeletePayload,
     "twitch.chat.clear_user": ChatClearUserPayload,

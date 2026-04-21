@@ -44,6 +44,9 @@ _PAYLOADS: dict[str, dict] = {
         "reward_id": "test-001", "reward_title": "Hydrate!",
         "reward_cost": 1000, "user_input": "please drink water",
     },
+    "follower": {
+        "username": "test_viewer", "display_name": "TestViewer",
+    },
 }
 
 _EVENT_TYPE_MAP: dict[str, str] = {
@@ -54,6 +57,7 @@ _EVENT_TYPE_MAP: dict[str, str] = {
     "raid": "twitch.raid",
     "bits": "twitch.bits",
     "channel_point": "twitch.channel_point_redeem",
+    "follower": "twitch.follower",
 }
 
 

@@ -58,6 +58,14 @@
       margin-top: 0.4em;
     }
 
+    .alert-gif {
+      max-height: 160px;
+      max-width: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
     /* Per-type accent colours */
     .alert-sub    { border-color: #9147ff; }
     .alert-resub  { border-color: #9147ff; }
@@ -66,6 +74,7 @@
     .alert-raid   { border-color: #ff6b35; }
     .alert-bits   { border-color: #f5c518; }
     .alert-channel_point { border-color: #00b5ad; }
+    .alert-follower      { border-color: #43b581; }
 
     @keyframes slideIn {
       from { opacity: 0; transform: translateY(-20px) scale(0.95); }
@@ -91,6 +100,7 @@
       raid:          "Incoming Raid",
       bits:          "Bits",
       channel_point: "Channel Point",
+      follower:      "New Follower",
     };
 
     function buildHeadline(type, data) {
@@ -102,6 +112,7 @@
         case "raid":    return `${data.from_display_name} — ${data.viewer_count} viewers`;
         case "bits":    return `${data.display_name} · ${data.bits} bits`;
         case "channel_point": return `${data.display_name} · ${data.reward_title}`;
+        case "follower":      return data.display_name;
         default:        return data.display_name || type;
       }
     }
@@ -126,10 +137,16 @@
       card.className = `alert-card alert-${type}`;
 
       card.innerHTML = `
+        ${data.clip_url ? `<img class="alert-gif" src="${data.clip_url}" alt="">` : ""}
         <div class="type">${LABELS[type] || type}</div>
         <div class="headline">${buildHeadline(type, data)}</div>
         ${buildSubText(type, data) ? `<div class="sub-text">${buildSubText(type, data)}</div>` : ""}
       `;
+
+      if (data.audio_url) {
+        const audio = new Audio(data.audio_url);
+        audio.play().catch(() => {});
+      }
 
       container.appendChild(card);
 

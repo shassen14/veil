@@ -45,6 +45,9 @@ app = FastAPI(title="veil", version="0.1.0", lifespan=lifespan)
 # Serve overlay HTML + assets at /overlays/*
 app.mount("/overlays", StaticFiles(directory=_ROOT / "overlays"), name="overlays")
 
+# Serve media files (clips, audio) at /media/*
+app.mount("/media", StaticFiles(directory=_ROOT / "media"), name="media")
+
 # API routes
 app.include_router(ingest.router)
 app.include_router(modqueue.router)
