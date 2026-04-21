@@ -5,7 +5,7 @@ secret = "changeme"  # overridden by VEIL_SECRET env var
 
 [chat]
 max_messages = 20
-fade_timeout = 0    # seconds before a message fades, 0 = never
+fade_timeout = 15    # seconds before a message fades, 0 = never
 position = "bottom-right"
 
 [discord]
