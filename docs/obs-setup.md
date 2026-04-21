@@ -19,7 +19,7 @@ Replace `<pi-ip>` with your Pi's local IP throughout (e.g. `192.168.1.42`).
 | Overlay | URL | What it shows |
 |---|---|---|
 | Chat | `http://<pi-ip>:8002/overlays/chat.html` | Twitch/YouTube chat, bottom-right, fades after 30s |
-| Alerts | `http://<pi-ip>:8002/overlays/alerts.html` | Sub, resub, gift sub, raid, bits, channel points — top-center |
+| Alerts | `http://<pi-ip>:8002/overlays/alerts.html` | Sub, resub, gift sub, raid, bits, channel points — 600×300, top-left |
 | Discord VC | `http://<pi-ip>:8002/overlays/discord_vc.html` | Voice channel members, speaking indicator, bottom-left |
 | Dashboard | `http://<pi-ip>:8002/dashboard.html` | Manual control panel (open in a browser, not OBS) |
 
@@ -30,7 +30,7 @@ Replace `<pi-ip>` with your Pi's local IP throughout (e.g. `192.168.1.42`).
 1. In the **Sources** panel, click **+** → **Browser**
 2. Name it (e.g. `veil-chat`) and click **OK**
 3. Set **URL** to the overlay URL from the table above
-4. Set **Width** and **Height** to match your canvas (usually `1920` × `1080`)
+4. Set **Width** and **Height** per overlay — see the table above. Alerts: `600` × `300`. Chat/Discord VC: match your layout (see scene tables below). Full-canvas overlays: `1920` × `1080`
 5. Check **Shutdown source when not visible** — this disconnects the WebSocket when the source is hidden, which is fine
 6. Uncheck **Refresh browser when scene becomes active** — veil syncs state on connect automatically
 7. Click **OK**
@@ -47,7 +47,7 @@ Webcam fills the canvas. Alerts sit on top for subs/raids.
 
 | Source | Type | W | H | X | Y |
 |---|---|---|---|---|---|
-| `veil-alerts` | Browser | 1920 | 1080 | 0 | 0 |
+| `veil-alerts` | Browser | 600 | 300 | 0 | 0 |
 | `webcam` | Video Capture | 1920 | 1080 | 0 | 0 |
 
 ---
@@ -58,7 +58,7 @@ Right sidebar (340px wide). Screen fills the left 1580px at full height.
 
 | Source | Type | W | H | X | Y |
 |---|---|---|---|---|---|
-| `veil-alerts` | Browser | 1920 | 1080 | 0 | 0 |
+| `veil-alerts` | Browser | 600 | 300 | 0 | 0 |
 | `veil-discord-vc` | Browser | 340 | 225 | 1580 | 855 |
 | `veil-chat` | Browser | 340 | 585 | 1580 | 270 |
 | `webcam` | Video Capture | 480 | 270 | 1580 | 0 |

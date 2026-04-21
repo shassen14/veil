@@ -14,7 +14,7 @@ max_members = 8
 
 [alerts]
 width = 600
-height = 180
+height = 300
 x = 0
 y = 0
 queue_max = 10
