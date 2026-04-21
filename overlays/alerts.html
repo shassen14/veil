@@ -145,6 +145,7 @@
 
       if (data.audio_url) {
         const audio = new Audio(data.audio_url);
+        audio.volume = alertsCfg.audio_volume ?? 1.0;
         audio.play().catch(() => {});
       }
 

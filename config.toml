@@ -18,6 +18,7 @@ height = 180
 x = 0
 y = 0
 queue_max = 10
+audio_volume = 0.4   # 0.0–1.0; keep alerts at background noise level
 
 [alerts.sub]
 audio = "media/audio/sub.mp3"
