@@ -22,34 +22,34 @@ audio_volume = 0.4   # 0.0–1.0; keep alerts at background noise level
 
 [alerts.sub]
 audio = "media/audio/sub.mp3"
-duration = 3
+duration = 5
 
 [alerts.resub]
 audio = "media/audio/sub.mp3"
-duration = 3
+duration = 5
 
 [alerts.giftsub]
 audio = "media/audio/sub.mp3"
-duration = 3
+duration = 5
 
 [alerts.giftbomb]
 audio = "media/audio/sub.mp3"
-duration = 3
+duration = 5
 
 [alerts.raid]
 audio = "media/audio/raid.mp3"
-duration = 3
+duration = 5
 
 [alerts.bits]
 audio = "media/audio/bits.mp3"
-duration = 3
+duration = 5
 
 [alerts.channel_point]
 audio = ""
-duration = 3
+duration = 5
 
 [alerts.follower]
-duration = 3
+duration = 5
 
 [scenes]
 default = "brb"
