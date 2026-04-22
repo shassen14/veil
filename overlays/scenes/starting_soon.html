@@ -195,6 +195,14 @@
       <span class="stat-label">last sub</span>
       <span class="stat-value empty" id="last-sub">—</span>
     </div>
+    <div class="stat">
+      <span class="stat-label">last raider</span>
+      <span class="stat-value empty" id="last-raider">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">last cheer</span>
+      <span class="stat-value empty" id="last-bits">—</span>
+    </div>
   </div>
 
   <script src="/overlays/static/js/veil.js"></script>
@@ -287,24 +295,25 @@
     }
 
     // ── viewer stats ──
+    function setValue(id, text) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.classList.remove("empty");
+    }
+
     function applyViewerStats(data) {
-      if (data.last_follower?.display_name) {
-        const el = document.getElementById("last-follower");
-        el.textContent = data.last_follower.display_name;
-        el.classList.remove("empty");
-      }
-      if (data.last_sub?.display_name) {
-        const el = document.getElementById("last-sub");
-        el.textContent = data.last_sub.display_name;
-        el.classList.remove("empty");
-      }
+      if (data.last_follower?.display_name) setValue("last-follower", data.last_follower.display_name);
+      if (data.last_sub?.display_name) setValue("last-sub", data.last_sub.display_name);
+      if (data.last_raider?.display_name) setValue("last-raider", data.last_raider.display_name);
+      if (data.last_bits?.display_name) setValue("last-bits", `${data.last_bits.display_name} (${data.last_bits.bits})`);
     }
 
     createVeilSocket({
-      "state.sync":          (data) => { applyEmotes(data.emote_map); applyViewerStats(data); },
-      "emotes.update":       (data) => applyEmotes(data),
-      "chat.message":        (data) => addMessage(data),
-      "viewer_stats.update": (data) => applyViewerStats(data),
+      "state.sync":             (data) => { applyEmotes(data.emote_map); applyViewerStats(data); },
+      "emotes.update":          (data) => applyEmotes(data),
+      "chat.message":           (data) => addMessage(data),
+      "viewer_stats.update":    (data) => applyViewerStats(data),
+      "viewer_stats.bootstrap": (data) => applyViewerStats(data),
     });
   </script>
 </body>

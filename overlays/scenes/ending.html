@@ -120,38 +120,37 @@
         <span class="stat-label">most loyal sub</span>
         <span class="stat-value empty" id="longest-sub">—</span>
       </div>
+      <div class="stat-row">
+        <span class="stat-label">last raider</span>
+        <span class="stat-value empty" id="last-raider">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">last cheer</span>
+        <span class="stat-value empty" id="last-bits">—</span>
+      </div>
     </div>
   </div>
 
   <script src="/overlays/static/js/veil.js"></script>
   <script>
-    function setFollower(name) {
-      const el = document.getElementById("last-follower");
-      el.textContent = name;
-      el.classList.remove("empty");
-    }
-
-    function setSub(name) {
-      const el = document.getElementById("last-sub");
-      el.textContent = name;
-      el.classList.remove("empty");
-    }
-
-    function setLongestSub(name) {
-      const el = document.getElementById("longest-sub");
-      el.textContent = name;
+    function setValue(id, text) {
+      const el = document.getElementById(id);
+      el.textContent = text;
       el.classList.remove("empty");
     }
 
     function applyViewerStats(data) {
-      if (data.last_follower?.display_name) setFollower(data.last_follower.display_name);
-      if (data.last_sub?.display_name) setSub(data.last_sub.display_name);
-      if (data.longest_subs?.length) setLongestSub(data.longest_subs[0].display_name);
+      if (data.last_follower?.display_name) setValue("last-follower", data.last_follower.display_name);
+      if (data.last_sub?.display_name) setValue("last-sub", data.last_sub.display_name);
+      if (data.last_raider?.display_name) setValue("last-raider", data.last_raider.display_name);
+      if (data.last_bits?.display_name) setValue("last-bits", `${data.last_bits.display_name} (${data.last_bits.bits})`);
+      if (data.longest_subs?.length) setValue("longest-sub", data.longest_subs[0].display_name);
     }
 
     createVeilSocket({
-      "state.sync":          (data) => applyViewerStats(data),
-      "viewer_stats.update": (data) => applyViewerStats(data),
+      "state.sync":             (data) => applyViewerStats(data),
+      "viewer_stats.update":    (data) => applyViewerStats(data),
+      "viewer_stats.bootstrap": (data) => applyViewerStats(data),
     });
   </script>
 </body>

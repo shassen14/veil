@@ -72,6 +72,8 @@ async def ws_endpoint(ws: WebSocket) -> None:
             "emote_map": state.emote_map,
             "last_follower": state.last_follower,
             "last_sub": state.last_sub,
+            "last_raider": state.last_raider,
+            "last_bits": state.last_bits,
             "recent_subs": state.recent_subs,
             "longest_subs": state.longest_subs,
         },

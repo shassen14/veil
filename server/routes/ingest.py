@@ -44,13 +44,17 @@ async def dispatch(event: Event) -> None:
             state.last_sub = {"display_name": p.get("gifter_display_name", p.get("gifter_username", ""))}
         else:
             state.last_sub = {"display_name": p.get("display_name", p.get("username", ""))}
-        await manager.broadcast({"type": "viewer_stats.update", "data": {"last_follower": state.last_follower, "last_sub": state.last_sub}})
+        await _broadcast_viewer_stats()
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data(alert_type, p)})
 
     elif t == "twitch.bits":
+        state.last_bits = {"display_name": p.get("display_name", p.get("username", "")), "bits": p.get("bits", 0)}
+        await _broadcast_viewer_stats()
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data("bits", p)})
 
     elif t == "twitch.raid":
+        state.last_raider = {"display_name": p.get("from_display_name", p.get("from_username", "")), "viewer_count": p.get("viewer_count", 0)}
+        await _broadcast_viewer_stats()
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data("raid", p)})
 
     elif t == "twitch.channel_point_redeem":
@@ -58,7 +62,7 @@ async def dispatch(event: Event) -> None:
 
     elif t == "twitch.follower":
         state.last_follower = {"display_name": p.get("display_name", p.get("username", ""))}
-        await manager.broadcast({"type": "viewer_stats.update", "data": {"last_follower": state.last_follower, "last_sub": state.last_sub}})
+        await _broadcast_viewer_stats()
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data("follower", p)})
 
     elif t == "modqueue.pending":
@@ -77,6 +81,8 @@ async def dispatch(event: Event) -> None:
 
     elif t == "stream.stats.bootstrap":
         state.last_follower = p.get("last_follower", state.last_follower)
+        state.last_raider = p.get("last_raider", state.last_raider)
+        state.last_bits = p.get("last_bits", state.last_bits)
         state.last_sub = p.get("recent_subs", [{}])[0] if p.get("recent_subs") else state.last_sub
         state.recent_subs = p.get("recent_subs", [])
         state.longest_subs = p.get("longest_subs", [])
@@ -113,6 +119,15 @@ async def dispatch(event: Event) -> None:
             if m["user_id"] == p["user_id"]:
                 m["muted"] = p.get("self_mute", False) or p.get("self_deaf", False)
         await _push_discord_voice()
+
+
+async def _broadcast_viewer_stats() -> None:
+    await manager.broadcast({"type": "viewer_stats.update", "data": {
+        "last_follower": state.last_follower,
+        "last_sub": state.last_sub,
+        "last_raider": state.last_raider,
+        "last_bits": state.last_bits,
+    }})
 
 
 async def _push_discord_voice() -> None:

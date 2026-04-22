@@ -172,6 +172,8 @@ class DiscordVoiceMutePayload(BaseModel):
 
 class StreamStatsBootstrapPayload(BaseModel):
     last_follower: dict = {}
+    last_raider: dict = {}
+    last_bits: dict = {}
     recent_subs: list = []
     longest_subs: list = []
 
