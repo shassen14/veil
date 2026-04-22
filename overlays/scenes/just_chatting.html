@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      background: #0a0a0a;
+      font-family: "Share Tech Mono", "Courier New", monospace;
+      color: #00ff41;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 2px,
+        rgba(0, 0, 0, 0.12) 2px, rgba(0, 0, 0, 0.12) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .container { text-align: center; }
+
+    .label {
+      font-size: 13px;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      margin-bottom: 18px;
+    }
+
+    .title {
+      font-size: 76px;
+      letter-spacing: 0.1em;
+      text-shadow:
+        0 0 30px rgba(0, 255, 65, 0.55),
+        0 0 70px rgba(0, 255, 65, 0.25);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 4px;
+      height: 0.85em;
+      background: #00ff41;
+      margin-left: 10px;
+      vertical-align: middle;
+      box-shadow: 0 0 8px rgba(0, 255, 65, 0.8);
+      animation: blink 1s step-end infinite;
+    }
+
+    .bar-wrap {
+      margin: 36px auto 0;
+      width: 260px;
+      height: 1px;
+      background: rgba(0, 255, 65, 0.15);
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="label">live</div>
+    <div class="title">JUST CHATTING<span class="cursor"></span></div>
+    <div class="bar-wrap"></div>
+  </div>
+</body>
+</html>
