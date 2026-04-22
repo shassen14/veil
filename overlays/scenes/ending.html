@@ -29,19 +29,14 @@
 
       .stats {
         margin-top: 40px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .stat-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 10px 16px;
+        justify-content: center;
         align-items: baseline;
-        gap: 16px;
       }
 
-      .stat-label { width: 130px; text-align: right; }
+      .stat-label { text-align: right; }
 
       .stat-value {
         letter-spacing: 0.08em;
@@ -58,26 +53,16 @@
       <div class="divider"></div>
       <div class="subtitle">see you next time</div>
       <div class="stats">
-        <div class="stat-row">
-          <span class="stat-label">last follower</span>
-          <span class="stat-value empty" id="last-follower">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">last sub</span>
-          <span class="stat-value empty" id="last-sub">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">most loyal sub</span>
-          <span class="stat-value empty" id="longest-sub">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">last raider</span>
-          <span class="stat-value empty" id="last-raider">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">last cheer</span>
-          <span class="stat-value empty" id="last-bits">—</span>
-        </div>
+        <span class="stat-label">last follower</span>
+        <span class="stat-value empty" id="last-follower">—</span>
+        <span class="stat-label">last sub</span>
+        <span class="stat-value empty" id="last-sub">—</span>
+        <span class="stat-label">most loyal sub</span>
+        <span class="stat-value empty" id="longest-sub">—</span>
+        <span class="stat-label">last raider</span>
+        <span class="stat-value empty" id="last-raider">—</span>
+        <span class="stat-label">last cheer</span>
+        <span class="stat-value empty" id="last-bits">—</span>
       </div>
     </div>
 
