@@ -82,17 +82,18 @@
       letter-spacing: 0.45em;
       text-transform: uppercase;
       opacity: 0.28;
-      width: 110px;
+      width: 130px;
       text-align: right;
     }
 
     .stat-value {
-      font-size: 15px;
+      font-size: 22px;
       letter-spacing: 0.08em;
-      opacity: 0.75;
+      opacity: 0.9;
+      text-shadow: 0 0 12px rgba(0, 255, 65, 0.45);
     }
 
-    .stat-value.empty { opacity: 0.15; }
+    .stat-value.empty { opacity: 0.15; text-shadow: none; }
 
     @keyframes glow {
       0%, 100% { text-shadow: 0 0 30px rgba(0,255,65,0.55), 0 0 70px rgba(0,255,65,0.25); }
@@ -115,6 +116,10 @@
         <span class="stat-label">last sub</span>
         <span class="stat-value empty" id="last-sub">—</span>
       </div>
+      <div class="stat-row">
+        <span class="stat-label">most loyal sub</span>
+        <span class="stat-value empty" id="longest-sub">—</span>
+      </div>
     </div>
   </div>
 
@@ -132,9 +137,16 @@
       el.classList.remove("empty");
     }
 
+    function setLongestSub(name) {
+      const el = document.getElementById("longest-sub");
+      el.textContent = name;
+      el.classList.remove("empty");
+    }
+
     function applyViewerStats(data) {
       if (data.last_follower?.display_name) setFollower(data.last_follower.display_name);
       if (data.last_sub?.display_name) setSub(data.last_sub.display_name);
+      if (data.longest_subs?.length) setLongestSub(data.longest_subs[0].display_name);
     }
 
     createVeilSocket({

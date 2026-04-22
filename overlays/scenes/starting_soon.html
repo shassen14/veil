@@ -103,7 +103,7 @@
     }
 
     .msg {
-      font-size: 18px;
+      font-size: 22px;
       color: #d8d8d8;
       line-height: 1.5;
       word-break: break-word;
@@ -115,9 +115,17 @@
 
     .msg .author { margin-right: 5px; }
 
+    .msg .source-icon {
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      margin-right: 5px;
+      opacity: 0.8;
+    }
+
     .msg .emote {
       display: inline-block;
-      height: 24px;
+      height: 28px;
       width: auto;
       vertical-align: middle;
       margin: 0 2px;
@@ -129,7 +137,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 48px;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -148,8 +156,13 @@
       opacity: 0.3;
     }
 
-    .stat-value { opacity: 0.85; letter-spacing: 0.06em; }
-    .stat-value.empty { opacity: 0.2; }
+    .stat-value {
+      font-size: 19px;
+      opacity: 0.9;
+      letter-spacing: 0.06em;
+      text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+    }
+    .stat-value.empty { opacity: 0.2; text-shadow: none; }
 
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     @keyframes glow {
@@ -253,6 +266,13 @@
       const el = document.createElement("div");
       el.className = "msg";
       const color = userColor(data.display_name, data.color);
+      if (data.source) {
+        const icon = document.createElement("img");
+        icon.className = "source-icon";
+        icon.src = `/overlays/static/img/${data.source}.png`;
+        icon.alt = data.source;
+        el.appendChild(icon);
+      }
       const author = document.createElement("span");
       author.className = "author";
       author.style.color = color;
