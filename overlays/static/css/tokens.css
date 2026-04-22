@@ -1,0 +1,7 @@
+:root {
+  --color: #00ff41;
+  --color-rgb: 0, 255, 65;
+  --bg: #0a0a0a;
+  --font-mono: "Share Tech Mono", "Courier New", monospace;
+  --font-sans: "Inter", "Segoe UI", sans-serif;
+}

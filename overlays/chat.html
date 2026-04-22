@@ -2,19 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/overlays/static/css/tokens.css" />
+    <link rel="stylesheet" href="/overlays/static/css/base.css" />
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
       body {
         background: transparent;
-        font-family: "Share Tech Mono", "Courier New", monospace;
+        font-family: var(--font-mono);
         font-size: 26px;
         overflow: hidden;
       }
@@ -31,7 +25,7 @@
 
       .msg {
         background: rgba(0, 0, 0, 0.50);
-        border-left: 2px solid #00ff41;
+        border-left: 2px solid var(--color);
         padding: 4px 10px;
         color: #ffffff;
         line-height: 1.5;
@@ -40,20 +34,21 @@
         transition: opacity 0.5s ease;
       }
 
+      /* chat.html slides in from the left */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-6px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+
       .msg::before {
         content: "> ";
-        color: #00ff41;
-        text-shadow: 0 0 7px rgba(0, 255, 65, 0.8);
+        color: var(--color);
+        text-shadow: 0 0 7px rgba(var(--color-rgb), 0.8);
       }
 
-      .msg.fading {
-        opacity: 0;
-      }
+      .msg.fading { opacity: 0; }
 
-      .msg .author {
-        font-weight: normal;
-        margin-right: 4px;
-      }
+      .msg .author       { font-weight: normal; margin-right: 4px; }
 
       .msg .badge {
         display: inline-block;
@@ -79,22 +74,8 @@
         opacity: 0.8;
       }
 
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateX(-6px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
+      #chat.hidden { display: none; }
 
-      #chat.hidden {
-        display: none;
-      }
-
-      /* Pending (held) messages */
       .msg.pending {
         border-left-color: #ff9f0a;
         opacity: 0.78;
@@ -124,94 +105,33 @@
         pointer-events: auto;
       }
 
-      .mod-btn.approve {
-        border: 1px solid #00ff41;
-        color: #00ff41;
-      }
-
-      .mod-btn.deny {
-        border: 1px solid #ff453a;
-        color: #ff453a;
-      }
+      .mod-btn.approve { border: 1px solid var(--color); color: var(--color); }
+      .mod-btn.deny    { border: 1px solid #ff453a;      color: #ff453a; }
     </style>
   </head>
   <body>
     <div id="chat"></div>
 
     <script src="/overlays/static/js/veil.js"></script>
+    <script src="/overlays/static/js/chat.js"></script>
     <script>
       const chatEl = document.getElementById("chat");
       const messages = [];
-      const messageMap = new Map(); // message_id → DOM element
+      const messageMap = new Map();
 
       const urlParams = new URLSearchParams(window.location.search);
       const secret = urlParams.get("secret") || "";
 
       const POSITIONS = {
         "bottom-right": { bottom: "20px", right: "20px" },
-        "bottom-left": { bottom: "20px", left: "20px" },
-        "top-right": { top: "20px", right: "20px" },
-        "top-left": { top: "20px", left: "20px" },
+        "bottom-left":  { bottom: "20px", left: "20px" },
+        "top-right":    { top: "20px",    right: "20px" },
+        "top-left":     { top: "20px",    left: "20px" },
       };
 
       let MAX_MESSAGES = 20;
       let FADE_TIMEOUT = 0;
       let chatSources = { twitch: true, youtube: true };
-
-      // -----------------------------------------------------------------------
-      // Emote support: populated server-side by boneless_couch via WebSocket
-      // -----------------------------------------------------------------------
-      const emoteMap = new Map(); // emoteName → imageUrl
-
-      function applyEmotes(map) {
-        emoteMap.clear();
-        for (const [name, url] of Object.entries(map || {})) {
-          emoteMap.set(name, url);
-        }
-      }
-
-      function _emoteImg(src, alt) {
-        const img = document.createElement('img');
-        img.className = 'emote';
-        img.src = src;
-        img.alt = alt;
-        return img;
-      }
-
-      function _appendWords(container, text) {
-        for (const token of text.split(/(\s+)/)) {
-          if (!token) continue;
-          const url = emoteMap.get(token);
-          container.appendChild(url ? _emoteImg(url, token) : document.createTextNode(token));
-        }
-      }
-
-      function renderMessageContent(message, twitchEmotes) {
-        const frag = document.createDocumentFragment();
-        const replacements = [];
-        for (const emote of (twitchEmotes || [])) {
-          for (const pos of (emote.positions || [])) {
-            const [s, e] = pos.split('-').map(Number);
-            if (!isNaN(s) && !isNaN(e)) {
-              replacements.push({ start: s, end: e, id: emote.id, name: message.slice(s, e + 1) });
-            }
-          }
-        }
-        replacements.sort((a, b) => a.start - b.start);
-
-        let cursor = 0;
-        for (const rep of replacements) {
-          if (cursor < rep.start) _appendWords(frag, message.slice(cursor, rep.start));
-          frag.appendChild(_emoteImg(
-            `https://static-cdn.jtvnw.net/emoticons/v2/${rep.id}/default/dark/2.0`,
-            rep.name,
-          ));
-          cursor = rep.end + 1;
-        }
-        if (cursor < message.length) _appendWords(frag, message.slice(cursor));
-        return frag;
-      }
-      // -----------------------------------------------------------------------
 
       function applyConfig(cfg) {
         const chatCfg = cfg.chat || {};
@@ -221,61 +141,23 @@
         Object.assign(chatEl.style, pos);
       }
 
-      function userColor(name, twitchColor) {
-        if (twitchColor) return twitchColor;
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-          hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return `hsl(${Math.abs(hash) % 360}, 70%, 65%)`;
-      }
-
-      function _buildMessageEl(data) {
-        const el = document.createElement("div");
-        el.className = "msg";
-        if (data.username) el.dataset.username = data.username;
-
-        const color = userColor(data.display_name, data.color);
-
-        if (data.source) {
-          const icon = document.createElement("img");
-          icon.className = "source-icon";
-          icon.src = `/overlays/static/img/${data.source}.png`;
-          icon.alt = data.source;
-          el.appendChild(icon);
-        }
-
-        const author = document.createElement("span");
-        author.className = "author";
-        author.style.color = color;
-        author.style.textShadow = `0 0 6px ${color}`;
-        author.textContent = data.display_name + ":";
-
-        el.appendChild(author);
-        el.appendChild(document.createTextNode(' '));
-        el.appendChild(renderMessageContent(data.message, data.emotes));
-        return el;
-      }
-
-      function addMessage(data) {
-        if (data.source && chatSources[data.source] === false) return;
-        if (data.message_id && messageMap.has(data.message_id)) {
-          return; // already present (e.g. pending message was approved)
-        }
-
-        const el = _buildMessageEl(data);
-        chatEl.appendChild(el);
-
-        if (data.message_id) {
-          messageMap.set(data.message_id, el);
-        }
-        messages.push(el);
-
+      function _trimMessages() {
         if (messages.length > MAX_MESSAGES) {
           const old = messages.shift();
           if (old.dataset.id) messageMap.delete(old.dataset.id);
           old.remove();
         }
+      }
+
+      function addMessage(data) {
+        if (data.source && chatSources[data.source] === false) return;
+        if (data.message_id && messageMap.has(data.message_id)) return;
+
+        const el = buildMessageEl(data);
+        chatEl.appendChild(el);
+        if (data.message_id) messageMap.set(data.message_id, el);
+        messages.push(el);
+        _trimMessages();
 
         if (FADE_TIMEOUT > 0) {
           setTimeout(() => {
@@ -293,7 +175,7 @@
       function addPendingMessage(data) {
         if (messageMap.has(data.message_id)) return;
 
-        const el = _buildMessageEl(data);
+        const el = buildMessageEl(data);
         el.classList.add("pending");
         el.dataset.id = data.message_id;
 
@@ -317,12 +199,7 @@
         chatEl.appendChild(el);
         messageMap.set(data.message_id, el);
         messages.push(el);
-
-        if (messages.length > MAX_MESSAGES) {
-          const old = messages.shift();
-          if (old.dataset.id) messageMap.delete(old.dataset.id);
-          old.remove();
-        }
+        _trimMessages();
       }
 
       function deleteMessage(id) {
@@ -338,7 +215,7 @@
       }
 
       function clearUserMessages(username) {
-        chatEl.querySelectorAll(`[data-username="${username}"]`).forEach(el => {
+        chatEl.querySelectorAll(`[data-username="${username}"]`).forEach((el) => {
           const msgId = el.dataset.id;
           if (msgId) messageMap.delete(msgId);
           const idx = messages.indexOf(el);
@@ -359,8 +236,7 @@
         if (!el) return;
         if (data.decision === "approve") {
           el.classList.remove("pending");
-          const actions = el.querySelector(".mod-actions");
-          if (actions) actions.remove();
+          el.querySelector(".mod-actions")?.remove();
         } else {
           deleteMessage(data.message_id);
         }
@@ -373,27 +249,21 @@
           if (data.config) applyConfig(data.config);
           if (!data.chat_visible) chatEl.classList.add("hidden");
           if (data.chat_sources) chatSources = { ...chatSources, ...data.chat_sources };
-          if (data.pending_messages) {
-            data.pending_messages.forEach(addPendingMessage);
-          }
+          if (data.pending_messages) data.pending_messages.forEach(addPendingMessage);
           applyEmotes(data.emote_map);
         },
-        "config.update": (data) => applyConfig(data),
-        "emotes.update": (data) => applyEmotes(data),
-        "chat.message": (data) => addMessage(data),
-        "chat.message.delete": (data) => deleteMessage(data.message_id),
-        "chat.clear_user": (data) => clearUserMessages(data.username),
-        "modqueue.pending": (data) => addPendingMessage(data),
-        "modqueue.decision": (data) => onModqueueDecision(data),
-        "modqueue.resolved": (data) => deleteMessage(data.message_id),
+        "config.update":      (data) => applyConfig(data),
+        "emotes.update":      (data) => applyEmotes(data),
+        "chat.message":       (data) => addMessage(data),
+        "chat.message.delete":(data) => deleteMessage(data.message_id),
+        "chat.clear_user":    (data) => clearUserMessages(data.username),
+        "modqueue.pending":   (data) => addPendingMessage(data),
+        "modqueue.decision":  (data) => onModqueueDecision(data),
+        "modqueue.resolved":  (data) => deleteMessage(data.message_id),
         "overlay.toggle": (data) => {
-          if (data.overlay === "chat") {
-            chatEl.classList.toggle("hidden", !data.visible);
-          }
+          if (data.overlay === "chat") chatEl.classList.toggle("hidden", !data.visible);
         },
-        "chat.source.toggle": (data) => {
-          chatSources[data.platform] = data.enabled;
-        },
+        "chat.source.toggle": (data) => { chatSources[data.platform] = data.enabled; },
       });
     </script>
   </body>

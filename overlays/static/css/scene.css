@@ -1,0 +1,81 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  font-family: var(--font-mono);
+  color: var(--color);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* scanline texture */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.12) 2px,
+    rgba(0, 0, 0, 0.12) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+.container {
+  text-align: center;
+}
+
+.label {
+  font-size: var(--font-label);
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  margin-bottom: 18px;
+}
+
+.title {
+  font-size: var(--font-title);
+  letter-spacing: 0.1em;
+  text-shadow:
+    0 0 30px rgba(var(--color-rgb), 0.55),
+    0 0 70px rgba(var(--color-rgb), 0.25);
+}
+
+.subtitle {
+  font-size: var(--font-subtitle);
+  letter-spacing: 0.35em;
+  opacity: 0.4;
+}
+
+.cursor {
+  display: inline-block;
+  width: 4px;
+  height: 0.85em;
+  background: var(--color);
+  margin-left: 10px;
+  vertical-align: middle;
+  box-shadow: 0 0 8px rgba(var(--color-rgb), 0.8);
+  animation: blink 1s step-end infinite;
+}
+
+.stat-label {
+  font-size: var(--font-stat-label);
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.stat-value {
+  font-size: var(--font-stat-value);
+  opacity: 0.9;
+}
+
+.stat-value.empty {
+  opacity: 0.2;
+  text-shadow: none;
+}
