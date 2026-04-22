@@ -170,7 +170,14 @@ class DiscordVoiceMutePayload(BaseModel):
 # Event type registry — canonical string → payload model
 # ---------------------------------------------------------------------------
 
+class StreamStatsBootstrapPayload(BaseModel):
+    last_follower: dict = {}
+    recent_subs: list = []
+    longest_subs: list = []
+
+
 EVENT_TYPES: dict[str, type[BaseModel]] = {
+    "stream.stats.bootstrap": StreamStatsBootstrapPayload,
     "twitch.sub": TwitchSubPayload,
     "twitch.resub": TwitchResubPayload,
     "twitch.giftsub": TwitchGiftSubPayload,

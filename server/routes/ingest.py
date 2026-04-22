@@ -75,6 +75,13 @@ async def dispatch(event: Event) -> None:
             state.pending_messages[mid]["hold_sources"] = p.get("hold_sources", [])
         await manager.broadcast({"type": "modqueue.update", "data": p})
 
+    elif t == "stream.stats.bootstrap":
+        state.last_follower = p.get("last_follower", state.last_follower)
+        state.last_sub = p.get("recent_subs", [{}])[0] if p.get("recent_subs") else state.last_sub
+        state.recent_subs = p.get("recent_subs", [])
+        state.longest_subs = p.get("longest_subs", [])
+        await manager.broadcast({"type": "viewer_stats.bootstrap", "data": p})
+
     elif t == "emotes.update":
         state.emote_map = p.get("emote_map", {})
         await manager.broadcast({"type": "emotes.update", "data": state.emote_map})
