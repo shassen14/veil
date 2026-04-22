@@ -69,6 +69,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
             "discord_members": state.discord_members,
             "pending_messages": list(state.pending_messages.values()),
             "config": _public_config(),
+            "emote_map": state.emote_map,
         },
     })
     try:

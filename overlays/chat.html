@@ -61,6 +61,14 @@
         margin-right: 3px;
       }
 
+      .msg .emote {
+        display: inline-block;
+        height: 28px;
+        width: auto;
+        vertical-align: middle;
+        margin: 0 1px;
+      }
+
       .msg .source-icon {
         width: 16px;
         height: 16px;
@@ -147,6 +155,61 @@
       let MAX_MESSAGES = 20;
       let FADE_TIMEOUT = 0;
 
+      // -----------------------------------------------------------------------
+      // Emote support: populated server-side by boneless_couch via WebSocket
+      // -----------------------------------------------------------------------
+      const emoteMap = new Map(); // emoteName → imageUrl
+
+      function applyEmotes(map) {
+        emoteMap.clear();
+        for (const [name, url] of Object.entries(map || {})) {
+          emoteMap.set(name, url);
+        }
+      }
+
+      function _emoteImg(src, alt) {
+        const img = document.createElement('img');
+        img.className = 'emote';
+        img.src = src;
+        img.alt = alt;
+        return img;
+      }
+
+      function _appendWords(container, text) {
+        for (const token of text.split(/(\s+)/)) {
+          if (!token) continue;
+          const url = emoteMap.get(token);
+          container.appendChild(url ? _emoteImg(url, token) : document.createTextNode(token));
+        }
+      }
+
+      function renderMessageContent(message, twitchEmotes) {
+        const frag = document.createDocumentFragment();
+        const replacements = [];
+        for (const emote of (twitchEmotes || [])) {
+          for (const pos of (emote.positions || [])) {
+            const [s, e] = pos.split('-').map(Number);
+            if (!isNaN(s) && !isNaN(e)) {
+              replacements.push({ start: s, end: e, id: emote.id, name: message.slice(s, e + 1) });
+            }
+          }
+        }
+        replacements.sort((a, b) => a.start - b.start);
+
+        let cursor = 0;
+        for (const rep of replacements) {
+          if (cursor < rep.start) _appendWords(frag, message.slice(cursor, rep.start));
+          frag.appendChild(_emoteImg(
+            `https://static-cdn.jtvnw.net/emoticons/v2/${rep.id}/default/dark/2.0`,
+            rep.name,
+          ));
+          cursor = rep.end + 1;
+        }
+        if (cursor < message.length) _appendWords(frag, message.slice(cursor));
+        return frag;
+      }
+      // -----------------------------------------------------------------------
+
       function applyConfig(cfg) {
         const chatCfg = cfg.chat || {};
         MAX_MESSAGES = chatCfg.max_messages ?? 20;
@@ -185,10 +248,9 @@
         author.style.textShadow = `0 0 6px ${color}`;
         author.textContent = data.display_name + ":";
 
-        const text = document.createTextNode(" " + data.message);
-
         el.appendChild(author);
-        el.appendChild(text);
+        el.appendChild(document.createTextNode(' '));
+        el.appendChild(renderMessageContent(data.message, data.emotes));
         return el;
       }
 
@@ -309,8 +371,10 @@
           if (data.pending_messages) {
             data.pending_messages.forEach(addPendingMessage);
           }
+          applyEmotes(data.emote_map);
         },
         "config.update": (data) => applyConfig(data),
+        "emotes.update": (data) => applyEmotes(data),
         "chat.message": (data) => addMessage(data),
         "chat.message.delete": (data) => deleteMessage(data.message_id),
         "chat.clear_user": (data) => clearUserMessages(data.username),

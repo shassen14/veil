@@ -66,6 +66,10 @@ async def dispatch(event: Event) -> None:
             state.pending_messages[mid]["hold_sources"] = p.get("hold_sources", [])
         await manager.broadcast({"type": "modqueue.update", "data": p})
 
+    elif t == "emotes.update":
+        state.emote_map = p.get("emote_map", {})
+        await manager.broadcast({"type": "emotes.update", "data": state.emote_map})
+
     elif t == "discord.voice.join":
         member = {
             "user_id": p["user_id"],
