@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+from typing import Any
+
+from fastapi import APIRouter, Body
 
 from ..media import pick_audio, pick_clip
 from ..ws_manager import manager
@@ -7,8 +9,11 @@ router = APIRouter()
 
 
 @router.post("/alert/{alert_type}")
-async def fire_alert(alert_type: str) -> dict:
-    data: dict = {"alert_type": alert_type}
+async def fire_alert(
+    alert_type: str,
+    payload: dict[str, Any] | None = Body(default=None),
+) -> dict:
+    data: dict = {"alert_type": alert_type, **(payload or {})}
     if clip_url := pick_clip(alert_type):
         data["clip_url"] = clip_url
     if audio_url := pick_audio(alert_type):

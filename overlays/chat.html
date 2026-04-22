@@ -156,6 +156,7 @@
 
       let MAX_MESSAGES = 20;
       let FADE_TIMEOUT = 0;
+      let chatSources = { twitch: true, youtube: true };
 
       // -----------------------------------------------------------------------
       // Emote support: populated server-side by boneless_couch via WebSocket
@@ -257,6 +258,7 @@
       }
 
       function addMessage(data) {
+        if (data.source && chatSources[data.source] === false) return;
         if (data.message_id && messageMap.has(data.message_id)) {
           return; // already present (e.g. pending message was approved)
         }
@@ -370,6 +372,7 @@
         "state.sync": (data) => {
           if (data.config) applyConfig(data.config);
           if (!data.chat_visible) chatEl.classList.add("hidden");
+          if (data.chat_sources) chatSources = { ...chatSources, ...data.chat_sources };
           if (data.pending_messages) {
             data.pending_messages.forEach(addPendingMessage);
           }
@@ -388,8 +391,8 @@
             chatEl.classList.toggle("hidden", !data.visible);
           }
         },
-        "chat.source.toggle": (_data) => {
-          // future: filter messages by platform
+        "chat.source.toggle": (data) => {
+          chatSources[data.platform] = data.enabled;
         },
       });
     </script>
