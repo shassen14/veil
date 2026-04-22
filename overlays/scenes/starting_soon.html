@@ -29,7 +29,12 @@
       z-index: 100;
     }
 
-    .container { text-align: center; }
+    /* ── main content ── */
+    .container {
+      text-align: center;
+      margin-right: 320px; /* keep clear of chat panel */
+      margin-bottom: 48px; /* keep clear of stats bar */
+    }
 
     .label {
       font-size: 13px;
@@ -85,12 +90,98 @@
       animation: sweep 2.2s linear infinite;
     }
 
+    /* ── chat panel ── */
+    .chat-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 320px;
+      bottom: 48px;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid rgba(0, 255, 65, 0.1);
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .chat-label {
+      font-size: 11px;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      opacity: 0.28;
+      padding: 12px 14px 9px;
+      border-bottom: 1px solid rgba(0, 255, 65, 0.07);
+      flex-shrink: 0;
+    }
+
+    #chat {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6px 0 4px;
+      gap: 2px;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+    }
+
+    .msg {
+      font-size: 13px;
+      padding: 2px 12px;
+      color: #d0d0d0;
+      line-height: 1.55;
+      word-break: break-word;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .msg .author { margin-right: 4px; }
+
+    .msg .emote {
+      display: inline-block;
+      height: 20px;
+      width: auto;
+      vertical-align: middle;
+      margin: 0 1px;
+    }
+
+    /* ── stats bar ── */
+    .stats-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 72px;
+      border-top: 1px solid rgba(0, 255, 65, 0.1);
+      background: rgba(0, 0, 0, 0.35);
+      font-size: 13px;
+    }
+
+    .stat { display: flex; align-items: center; gap: 12px; }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      opacity: 0.3;
+    }
+
+    .stat-value { opacity: 0.85; letter-spacing: 0.06em; }
+    .stat-value.empty { opacity: 0.2; }
+
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     @keyframes glow {
       0%, 100% { text-shadow: 0 0 30px rgba(0,255,65,0.55), 0 0 70px rgba(0,255,65,0.25); }
       50%       { text-shadow: 0 0 50px rgba(0,255,65,0.85), 0 0 100px rgba(0,255,65,0.4); }
     }
     @keyframes sweep { to { left: 100%; } }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
   </style>
 </head>
 <body>
@@ -100,6 +191,24 @@
     <div class="clock" id="clock"></div>
     <div class="bar-wrap"></div>
   </div>
+
+  <div class="chat-panel">
+    <div class="chat-label">chat</div>
+    <div id="chat"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-label">last follower</span>
+      <span class="stat-value empty" id="last-follower">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">last sub</span>
+      <span class="stat-value empty" id="last-sub">—</span>
+    </div>
+  </div>
+
+  <script src="/overlays/static/js/veil.js"></script>
   <script>
     function tick() {
       const d = new Date();
@@ -110,6 +219,101 @@
     }
     tick();
     setInterval(tick, 1000);
+
+    // ── chat ──
+    const chatEl = document.getElementById("chat");
+    const messages = [];
+    const MAX_MESSAGES = 30;
+    const emoteMap = new Map();
+
+    function applyEmotes(map) {
+      emoteMap.clear();
+      for (const [name, url] of Object.entries(map || {})) emoteMap.set(name, url);
+    }
+
+    function _emoteImg(src, alt) {
+      const img = document.createElement("img");
+      img.className = "emote";
+      img.src = src; img.alt = alt;
+      return img;
+    }
+
+    function _appendWords(container, text) {
+      for (const token of text.split(/(\s+)/)) {
+        if (!token) continue;
+        const url = emoteMap.get(token);
+        container.appendChild(url ? _emoteImg(url, token) : document.createTextNode(token));
+      }
+    }
+
+    function renderContent(message, twitchEmotes) {
+      const frag = document.createDocumentFragment();
+      const reps = [];
+      for (const emote of (twitchEmotes || [])) {
+        for (const pos of (emote.positions || [])) {
+          const [s, e] = pos.split("-").map(Number);
+          if (!isNaN(s) && !isNaN(e)) reps.push({ start: s, end: e, id: emote.id, name: message.slice(s, e + 1) });
+        }
+      }
+      reps.sort((a, b) => a.start - b.start);
+      let cursor = 0;
+      for (const rep of reps) {
+        if (cursor < rep.start) _appendWords(frag, message.slice(cursor, rep.start));
+        frag.appendChild(_emoteImg(`https://static-cdn.jtvnw.net/emoticons/v2/${rep.id}/default/dark/2.0`, rep.name));
+        cursor = rep.end + 1;
+      }
+      if (cursor < message.length) _appendWords(frag, message.slice(cursor));
+      return frag;
+    }
+
+    function userColor(name, twitchColor) {
+      if (twitchColor) return twitchColor;
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return `hsl(${Math.abs(hash) % 360}, 70%, 65%)`;
+    }
+
+    function addMessage(data) {
+      const el = document.createElement("div");
+      el.className = "msg";
+      const color = userColor(data.display_name, data.color);
+      const author = document.createElement("span");
+      author.className = "author";
+      author.style.color = color;
+      author.style.textShadow = `0 0 6px ${color}`;
+      author.textContent = data.display_name + ":";
+      el.appendChild(author);
+      el.appendChild(document.createTextNode(" "));
+      el.appendChild(renderContent(data.message, data.emotes));
+      chatEl.appendChild(el);
+      messages.push(el);
+      if (messages.length > MAX_MESSAGES) messages.shift().remove();
+    }
+
+    // ── viewer stats ──
+    function setFollower(name) {
+      const el = document.getElementById("last-follower");
+      el.textContent = name;
+      el.classList.remove("empty");
+    }
+
+    function setSub(name) {
+      const el = document.getElementById("last-sub");
+      el.textContent = name;
+      el.classList.remove("empty");
+    }
+
+    function applyViewerStats(data) {
+      if (data.last_follower?.display_name) setFollower(data.last_follower.display_name);
+      if (data.last_sub?.display_name) setSub(data.last_sub.display_name);
+    }
+
+    createVeilSocket({
+      "state.sync":          (data) => { applyEmotes(data.emote_map); applyViewerStats(data); },
+      "emotes.update":       (data) => applyEmotes(data),
+      "chat.message":        (data) => addMessage(data),
+      "viewer_stats.update": (data) => applyViewerStats(data),
+    });
   </script>
 </body>
 </html>

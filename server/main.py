@@ -70,6 +70,8 @@ async def ws_endpoint(ws: WebSocket) -> None:
             "pending_messages": list(state.pending_messages.values()),
             "config": _public_config(),
             "emote_map": state.emote_map,
+            "last_follower": state.last_follower,
+            "last_sub": state.last_sub,
         },
     })
     try:

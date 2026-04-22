@@ -38,6 +38,13 @@ async def dispatch(event: Event) -> None:
 
     elif t in ("twitch.sub", "twitch.resub", "twitch.giftsub", "twitch.giftbomb"):
         alert_type = t.split(".", 1)[1]  # "sub", "resub", etc.
+        if t == "twitch.giftsub":
+            state.last_sub = {"display_name": p.get("recipient_display_name", p.get("recipient_username", ""))}
+        elif t == "twitch.giftbomb":
+            state.last_sub = {"display_name": p.get("gifter_display_name", p.get("gifter_username", ""))}
+        else:
+            state.last_sub = {"display_name": p.get("display_name", p.get("username", ""))}
+        await manager.broadcast({"type": "viewer_stats.update", "data": {"last_follower": state.last_follower, "last_sub": state.last_sub}})
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data(alert_type, p)})
 
     elif t == "twitch.bits":
@@ -50,6 +57,8 @@ async def dispatch(event: Event) -> None:
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data("channel_point", p)})
 
     elif t == "twitch.follower":
+        state.last_follower = {"display_name": p.get("display_name", p.get("username", ""))}
+        await manager.broadcast({"type": "viewer_stats.update", "data": {"last_follower": state.last_follower, "last_sub": state.last_sub}})
         await manager.broadcast({"type": "alert.trigger", "data": _alert_data("follower", p)})
 
     elif t == "modqueue.pending":
