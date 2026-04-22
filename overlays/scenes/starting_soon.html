@@ -29,12 +29,8 @@
       z-index: 100;
     }
 
-    /* ── main content ── */
-    .container {
-      text-align: center;
-      margin-right: 320px; /* keep clear of chat panel */
-      margin-bottom: 48px; /* keep clear of stats bar */
-    }
+    /* ── main content — truly centered in the full canvas ── */
+    .container { text-align: center; }
 
     .label {
       font-size: 13px;
@@ -90,58 +86,41 @@
       animation: sweep 2.2s linear infinite;
     }
 
-    /* ── chat panel ── */
-    .chat-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 320px;
-      bottom: 48px;
-      display: flex;
-      flex-direction: column;
-      border-left: 1px solid rgba(0, 255, 65, 0.1);
-      background: rgba(0, 0, 0, 0.25);
-    }
-
-    .chat-label {
-      font-size: 11px;
-      letter-spacing: 0.45em;
-      text-transform: uppercase;
-      opacity: 0.28;
-      padding: 12px 14px 9px;
-      border-bottom: 1px solid rgba(0, 255, 65, 0.07);
-      flex-shrink: 0;
-    }
-
+    /* ── chat — no panel, just floating messages over the scene ── */
     #chat {
-      flex: 1;
-      overflow: hidden;
+      position: fixed;
+      bottom: 56px;
+      right: 28px;
+      width: 400px;
+      max-height: 42%;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 6px 0 4px;
-      gap: 2px;
-      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
-      mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+      gap: 5px;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
+      mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
     }
 
     .msg {
-      font-size: 13px;
-      padding: 2px 12px;
-      color: #d0d0d0;
-      line-height: 1.55;
+      font-size: 18px;
+      color: #d8d8d8;
+      line-height: 1.5;
       word-break: break-word;
-      animation: fadeIn 0.15s ease;
+      text-shadow:
+        0 1px 6px rgba(0, 0, 0, 0.95),
+        0 0 18px rgba(0, 0, 0, 0.7);
+      animation: fadeIn 0.2s ease;
     }
 
-    .msg .author { margin-right: 4px; }
+    .msg .author { margin-right: 5px; }
 
     .msg .emote {
       display: inline-block;
-      height: 20px;
+      height: 24px;
       width: auto;
       vertical-align: middle;
-      margin: 0 1px;
+      margin: 0 2px;
     }
 
     /* ── stats bar ── */
@@ -179,7 +158,7 @@
     }
     @keyframes sweep { to { left: 100%; } }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateX(6px); }
+      from { opacity: 0; transform: translateX(8px); }
       to   { opacity: 1; transform: translateX(0); }
     }
   </style>
@@ -192,10 +171,7 @@
     <div class="bar-wrap"></div>
   </div>
 
-  <div class="chat-panel">
-    <div class="chat-label">chat</div>
-    <div id="chat"></div>
-  </div>
+  <div id="chat"></div>
 
   <div class="stats-bar">
     <div class="stat">
@@ -223,7 +199,7 @@
     // ── chat ──
     const chatEl = document.getElementById("chat");
     const messages = [];
-    const MAX_MESSAGES = 30;
+    const MAX_MESSAGES = 20;
     const emoteMap = new Map();
 
     function applyEmotes(map) {
@@ -280,7 +256,7 @@
       const author = document.createElement("span");
       author.className = "author";
       author.style.color = color;
-      author.style.textShadow = `0 0 6px ${color}`;
+      author.style.textShadow = `0 0 8px ${color}`;
       author.textContent = data.display_name + ":";
       el.appendChild(author);
       el.appendChild(document.createTextNode(" "));
@@ -291,21 +267,17 @@
     }
 
     // ── viewer stats ──
-    function setFollower(name) {
-      const el = document.getElementById("last-follower");
-      el.textContent = name;
-      el.classList.remove("empty");
-    }
-
-    function setSub(name) {
-      const el = document.getElementById("last-sub");
-      el.textContent = name;
-      el.classList.remove("empty");
-    }
-
     function applyViewerStats(data) {
-      if (data.last_follower?.display_name) setFollower(data.last_follower.display_name);
-      if (data.last_sub?.display_name) setSub(data.last_sub.display_name);
+      if (data.last_follower?.display_name) {
+        const el = document.getElementById("last-follower");
+        el.textContent = data.last_follower.display_name;
+        el.classList.remove("empty");
+      }
+      if (data.last_sub?.display_name) {
+        const el = document.getElementById("last-sub");
+        el.textContent = data.last_sub.display_name;
+        el.classList.remove("empty");
+      }
     }
 
     createVeilSocket({
