@@ -16,12 +16,12 @@ Replace `<pi-ip>` with your Pi's local IP throughout (e.g. `192.168.1.42`).
 
 ## Available overlays
 
-| Overlay | URL | What it shows |
-|---|---|---|
-| Chat | `http://<pi-ip>:8002/overlays/chat.html` | Twitch/YouTube chat, bottom-right, fades after 30s |
-| Alerts | `http://<pi-ip>:8002/overlays/alerts.html` | Sub, resub, gift sub, raid, bits, channel points — 600×300, top-left |
-| Discord VC | `http://<pi-ip>:8002/overlays/discord_vc.html` | Voice channel members, speaking indicator, bottom-left |
-| Dashboard | `http://<pi-ip>:8002/dashboard.html` | Manual control panel (open in a browser, not OBS) |
+| Overlay    | URL                                            | What it shows                                                            |
+| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------ |
+| Chat       | `http://<pi-ip>:8002/overlays/chat.html`       | Twitch/YouTube chat, top-right below facecam, semi-transparent with fade |
+| Alerts     | `http://<pi-ip>:8002/overlays/alerts.html`     | Sub, resub, gift sub, raid, bits, channel points — 600×300, top-left     |
+| Discord VC | `http://<pi-ip>:8002/overlays/discord_vc.html` | Voice channel members, speaking indicator, bottom-left                   |
+| Dashboard  | `http://<pi-ip>:8002/dashboard.html`           | Manual control panel (open in a browser, not OBS)                        |
 
 ---
 
@@ -45,44 +45,38 @@ Repeat for each overlay you want. Each one opens its own WebSocket connection �
 
 Webcam fills the canvas. Alerts sit on top for subs/raids.
 
-| Source | Type | W | H | X | Y |
-|---|---|---|---|---|---|
-| `veil-alerts` | Browser | 600 | 300 | 0 | 0 |
-| `webcam` | Video Capture | 1920 | 1080 | 0 | 0 |
+| Source        | Type          | W    | H    | X   | Y   |
+| ------------- | ------------- | ---- | ---- | --- | --- |
+| `veil-alerts` | Browser       | 600  | 300  | 0   | 0   |
+| `webcam`      | Video Capture | 1920 | 1080 | 0   | 0   |
 
 ---
 
 ### coding
 
-Right sidebar (340px wide). Screen fills the left 1580px at full height.
+Screen fills the full canvas. Webcam and chat float over the top-right corner (340px wide band). Alerts sit top-left as usual.
 
-| Source | Type | W | H | X | Y |
-|---|---|---|---|---|---|
-| `veil-alerts` | Browser | 600 | 300 | 0 | 0 |
-| `veil-discord-vc` | Browser | 340 | 225 | 1580 | 855 |
-| `veil-chat` | Browser | 340 | 585 | 1580 | 270 |
-| `webcam` | Video Capture | 480 | 270 | 1580 | 0 |
-| `screen` | Display Capture | 1580 | 1080 | 0 | 0 |
+| Source        | Type            | W    | H    | X    | Y   |
+| ------------- | --------------- | ---- | ---- | ---- | --- |
+| `screen`      | Display Capture | 1920 | 1080 | 0    | 0   |
+| `webcam`      | Video Capture   | 340  | 270  | 1580 | 0   |
+| `veil-chat`   | Browser         | 340  | 500  | 1580 | 270 |
+| `veil-alerts` | Browser         | 600  | 300  | 0    | 0   |
 
-Sidebar stack top→bottom: webcam 270px · chat 585px · discord 225px = 1080px.
+Webcam (480×270, 16:9, cropped to 340 width) sits flush in the top-right corner. Chat starts 8px below it at Y=200 and runs 500px down, leaving the bottom-right free for a future Discord VC overlay.
 
-**Webcam crop** — the webcam source is captured at 480×270 then cropped to 340px wide:
-1. Right-click the webcam source → **Filters** → **+** → **Crop/Pad**
-2. Set Left: `70`, Right: `70`, Top: `0`, Bottom: `0`
+**Chat faded look** — chat uses a semi-transparent background (~50% opacity) and a top gradient mask so older messages dissolve into the background rather than hard-cutting off. Fade timeout is set in `config.toml` under `[chat] fade_timeout` (recommended: `20`).
 
 **Screen crop** (remove macOS menu bar):
+
 1. Right-click the screen source → **Filters** → **+** → **Crop/Pad**
 2. Set Top: `25`
 
-**Browser source settings** (all three overlays):
-- Width/Height: match the table above — do NOT use full canvas
+**Browser source settings** (chat and alerts):
+
+- Width/Height: match the table above
 - Check **Shutdown source when not visible**
 - Uncheck **Refresh browser when scene becomes active**
-
-**Discord layout** auto-adjusts by member count:
-- 1–2 members → horizontal pill per member
-- 3–4 members → 2×2 grid
-- 5–8 members → 4×2 grid
 
 ---
 
@@ -109,14 +103,17 @@ You should see the overlay react in OBS immediately.
 ## Troubleshooting
 
 **`ws_connections: 0` after adding sources**
+
 - Make sure veil is reachable from the streaming PC: `ping <pi-ip>` and `curl http://<pi-ip>:8002/status` from that machine
 - Check that OBS isn't blocking local network requests (some VPNs or firewalls interfere)
 - Try clicking **Refresh** on the Browser Source in OBS
 
 **Overlay loads but events don't appear**
+
 - Confirm boneless_couch is sending to the correct IP and port (8002)
 - Check the Bearer token matches `config.toml [server] secret`
 - Use the `/test/*` endpoints to rule out boneless_couch as the issue
 
 **Chat is hidden**
+
 - `chat_visible` in `/status` may be `false` — use the dashboard at `http://<pi-ip>:8002/dashboard.html` to toggle it
