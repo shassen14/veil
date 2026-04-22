@@ -1,157 +1,202 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%; height: 100%;
-      background: #0a0a0a;
-      font-family: "Share Tech Mono", "Courier New", monospace;
-      color: #00ff41;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ── tokens: edit here to restyle the whole scene ── */
+      :root {
+        --color: #00ff41;
+        --color-rgb: 0, 255, 65; /* channels for rgba() */
 
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent 0px, transparent 2px,
-        rgba(0, 0, 0, 0.12) 2px, rgba(0, 0, 0, 0.12) 4px
-      );
-      pointer-events: none;
-      z-index: 100;
-    }
+        --font-label: 30px; /* "STREAM ENDING" eyebrow */
+        --font-title: 68px; /* THANKS FOR WATCHING */
+        --font-subtitle: 20px; /* "see you next time" */
+        --font-stat-label: 18px;
+        --font-stat-value: 28px;
+      }
 
-    .container { text-align: center; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #0a0a0a;
+        font-family: "Share Tech Mono", "Courier New", monospace;
+        color: var(--color);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .label {
-      font-size: 13px;
-      letter-spacing: 0.45em;
-      text-transform: uppercase;
-      opacity: 0.45;
-      margin-bottom: 18px;
-    }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, 0.12) 2px,
+          rgba(0, 0, 0, 0.12) 4px
+        );
+        pointer-events: none;
+        z-index: 100;
+      }
 
-    .title {
-      font-size: 68px;
-      letter-spacing: 0.1em;
-      line-height: 1.2;
-      text-shadow:
-        0 0 30px rgba(0, 255, 65, 0.55),
-        0 0 70px rgba(0, 255, 65, 0.25);
-      animation: glow 4s ease-in-out infinite;
-    }
+      .container {
+        text-align: center;
+      }
 
-    .divider {
-      margin: 30px auto;
-      width: 200px;
-      height: 1px;
-      background: rgba(0, 255, 65, 0.25);
-    }
+      .label {
+        font-size: var(--font-label);
+        letter-spacing: 0.45em;
+        text-transform: uppercase;
+        opacity: 0.45;
+        margin-bottom: 18px;
+      }
 
-    .subtitle {
-      font-size: 16px;
-      letter-spacing: 0.35em;
-      opacity: 0.4;
-    }
+      .title {
+        font-size: var(--font-title);
+        letter-spacing: 0.1em;
+        line-height: 1.2;
+        text-shadow:
+          0 0 30px rgba(var(--color-rgb), 0.55),
+          0 0 70px rgba(var(--color-rgb), 0.25);
+        animation: glow 4s ease-in-out infinite;
+      }
 
-    /* ── viewer stats ── */
-    .stats {
-      margin-top: 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: center;
-    }
+      .divider {
+        margin: 30px auto;
+        width: 200px;
+        height: 1px;
+        background: rgba(var(--color-rgb), 0.25);
+      }
 
-    .stat-row {
-      display: flex;
-      align-items: baseline;
-      gap: 16px;
-    }
+      .subtitle {
+        font-size: var(--font-subtitle);
+        letter-spacing: 0.35em;
+        opacity: 0.4;
+      }
 
-    .stat-label {
-      font-size: 10px;
-      letter-spacing: 0.45em;
-      text-transform: uppercase;
-      opacity: 0.28;
-      width: 130px;
-      text-align: right;
-    }
+      /* ── viewer stats ── */
+      .stats {
+        margin-top: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
 
-    .stat-value {
-      font-size: 22px;
-      letter-spacing: 0.08em;
-      opacity: 0.9;
-      text-shadow: 0 0 12px rgba(0, 255, 65, 0.45);
-    }
+      .stat-row {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+      }
 
-    .stat-value.empty { opacity: 0.15; text-shadow: none; }
+      .stat-label {
+        font-size: var(--font-stat-label);
+        letter-spacing: 0.45em;
+        text-transform: uppercase;
+        opacity: 0.45;
+        width: 130px;
+        text-align: right;
+      }
 
-    @keyframes glow {
-      0%, 100% { text-shadow: 0 0 30px rgba(0,255,65,0.55), 0 0 70px rgba(0,255,65,0.25); }
-      50%       { text-shadow: 0 0 50px rgba(0,255,65,0.8),  0 0 100px rgba(0,255,65,0.4); }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="label">stream ending</div>
-    <div class="title">THANKS FOR<br>WATCHING</div>
-    <div class="divider"></div>
-    <div class="subtitle">see you next time</div>
-    <div class="stats">
-      <div class="stat-row">
-        <span class="stat-label">last follower</span>
-        <span class="stat-value empty" id="last-follower">—</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">last sub</span>
-        <span class="stat-value empty" id="last-sub">—</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">most loyal sub</span>
-        <span class="stat-value empty" id="longest-sub">—</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">last raider</span>
-        <span class="stat-value empty" id="last-raider">—</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">last cheer</span>
-        <span class="stat-value empty" id="last-bits">—</span>
+      .stat-value {
+        font-size: var(--font-stat-value);
+        letter-spacing: 0.08em;
+        opacity: 0.9;
+        text-shadow: 0 0 12px rgba(var(--color-rgb), 0.45);
+      }
+
+      .stat-value.empty {
+        opacity: 0.15;
+        text-shadow: none;
+      }
+
+      @keyframes glow {
+        0%,
+        100% {
+          text-shadow:
+            0 0 30px rgba(var(--color-rgb), 0.55),
+            0 0 70px rgba(var(--color-rgb), 0.25);
+        }
+        50% {
+          text-shadow:
+            0 0 50px rgba(var(--color-rgb), 0.8),
+            0 0 100px rgba(var(--color-rgb), 0.4);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="label">stream ending</div>
+      <div class="title">THANKS FOR<br />WATCHING</div>
+      <div class="divider"></div>
+      <div class="subtitle">see you next time</div>
+      <div class="stats">
+        <div class="stat-row">
+          <span class="stat-label">last follower</span>
+          <span class="stat-value empty" id="last-follower">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">last sub</span>
+          <span class="stat-value empty" id="last-sub">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">most loyal sub</span>
+          <span class="stat-value empty" id="longest-sub">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">last raider</span>
+          <span class="stat-value empty" id="last-raider">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">last cheer</span>
+          <span class="stat-value empty" id="last-bits">—</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="/overlays/static/js/veil.js"></script>
-  <script>
-    function setValue(id, text) {
-      const el = document.getElementById(id);
-      el.textContent = text;
-      el.classList.remove("empty");
-    }
+    <script src="/overlays/static/js/veil.js"></script>
+    <script>
+      function setValue(id, text) {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.classList.remove("empty");
+      }
 
-    function applyViewerStats(data) {
-      if (data.last_follower?.display_name) setValue("last-follower", data.last_follower.display_name);
-      if (data.last_sub?.display_name) setValue("last-sub", data.last_sub.display_name);
-      if (data.last_raider?.display_name) setValue("last-raider", data.last_raider.display_name);
-      if (data.last_bits?.display_name) setValue("last-bits", `${data.last_bits.display_name} (${data.last_bits.bits})`);
-      if (data.longest_subs?.length) setValue("longest-sub", data.longest_subs[0].display_name);
-    }
+      function applyViewerStats(data) {
+        if (data.last_follower?.display_name)
+          setValue("last-follower", data.last_follower.display_name);
+        if (data.last_sub?.display_name)
+          setValue("last-sub", data.last_sub.display_name);
+        if (data.last_raider?.display_name)
+          setValue("last-raider", data.last_raider.display_name);
+        if (data.last_bits?.display_name)
+          setValue(
+            "last-bits",
+            `${data.last_bits.display_name} (${data.last_bits.bits})`,
+          );
+        if (data.longest_subs?.length)
+          setValue("longest-sub", data.longest_subs[0].display_name);
+      }
 
-    createVeilSocket({
-      "state.sync":             (data) => applyViewerStats(data),
-      "viewer_stats.update":    (data) => applyViewerStats(data),
-      "viewer_stats.bootstrap": (data) => applyViewerStats(data),
-    });
-  </script>
-</body>
+      createVeilSocket({
+        "state.sync": (data) => applyViewerStats(data),
+        "viewer_stats.update": (data) => applyViewerStats(data),
+        "viewer_stats.bootstrap": (data) => applyViewerStats(data),
+      });
+    </script>
+  </body>
 </html>

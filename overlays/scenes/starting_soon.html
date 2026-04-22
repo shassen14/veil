@@ -14,10 +14,11 @@
         --stats-bar-h: 72px; /* also controls chat bottom offset */
 
         --font-label: 30px; /* "STREAM" eyebrow */
+        --font-title: 76px; /* STARTING SOON */
         --font-clock: 36px;
         --font-chat: 28px;
-        --font-stat-value: 28px;
         --font-stat-label: 18px;
+        --font-stat-value: 28px;
       }
 
       * {
@@ -67,7 +68,7 @@
       }
 
       .title {
-        font-size: 76px;
+        font-size: var(--font-title);
         letter-spacing: 0.1em;
         text-shadow:
           0 0 30px rgba(var(--color-rgb), 0.55),
