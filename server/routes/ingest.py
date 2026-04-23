@@ -1,5 +1,7 @@
 """POST /event — receives all events from boneless_couch."""
 
+import time
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 
 from ..config import config
@@ -45,25 +47,35 @@ async def dispatch(event: Event) -> None:
         else:
             state.last_sub = {"display_name": p.get("display_name", p.get("username", ""))}
         await _broadcast_viewer_stats()
-        await manager.broadcast({"type": "alert.trigger", "data": _alert_data(alert_type, p)})
+        if state.alerts_enabled and not _check_cooldown(alert_type):
+            _record_trigger(alert_type)
+            await manager.broadcast({"type": "alert.trigger", "data": _alert_data(alert_type, p)})
 
     elif t == "twitch.bits":
         state.last_bits = {"display_name": p.get("display_name", p.get("username", "")), "bits": p.get("bits", 0)}
         await _broadcast_viewer_stats()
-        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("bits", p)})
+        if state.alerts_enabled and not _check_cooldown("bits"):
+            _record_trigger("bits")
+            await manager.broadcast({"type": "alert.trigger", "data": _alert_data("bits", p)})
 
     elif t == "twitch.raid":
         state.last_raider = {"display_name": p.get("from_display_name", p.get("from_username", "")), "viewer_count": p.get("viewer_count", 0)}
         await _broadcast_viewer_stats()
-        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("raid", p)})
+        if state.alerts_enabled and not _check_cooldown("raid"):
+            _record_trigger("raid")
+            await manager.broadcast({"type": "alert.trigger", "data": _alert_data("raid", p)})
 
     elif t == "twitch.channel_point_redeem":
-        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("channel_point", p)})
+        if state.alerts_enabled and not _check_cooldown("channel_point"):
+            _record_trigger("channel_point")
+            await manager.broadcast({"type": "alert.trigger", "data": _alert_data("channel_point", p)})
 
     elif t == "twitch.follower":
         state.last_follower = {"display_name": p.get("display_name", p.get("username", ""))}
         await _broadcast_viewer_stats()
-        await manager.broadcast({"type": "alert.trigger", "data": _alert_data("follower", p)})
+        if state.alerts_enabled and not _check_cooldown("follower"):
+            _record_trigger("follower")
+            await manager.broadcast({"type": "alert.trigger", "data": _alert_data("follower", p)})
 
     elif t == "modqueue.pending":
         state.pending_messages[p["message_id"]] = p
@@ -132,6 +144,19 @@ async def _broadcast_viewer_stats() -> None:
 
 async def _push_discord_voice() -> None:
     await manager.broadcast({"type": "discord.voice.update", "data": {"members": state.discord_members}})
+
+
+def _check_cooldown(alert_type: str) -> bool:
+    """Returns True if the alert should be suppressed (within cooldown)."""
+    cooldown = config.get("alerts", {}).get(alert_type, {}).get("cooldown_s", 0)
+    if cooldown <= 0:
+        return False
+    last = state.alert_last_triggered.get(alert_type, 0)
+    return (time.time() - last) < cooldown
+
+
+def _record_trigger(alert_type: str) -> None:
+    state.alert_last_triggered[alert_type] = time.time()
 
 
 def _alert_data(alert_type: str, payload: dict) -> dict:

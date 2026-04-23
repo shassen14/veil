@@ -146,6 +146,14 @@
 
       const queue = [];
       let showing = false;
+      let activeAudio = null;
+
+      function stopAlerts() {
+        queue.length = 0;
+        if (activeAudio) { activeAudio.pause(); activeAudio = null; }
+        container.innerHTML = "";
+        showing = false;
+      }
 
       function processQueue() {
         if (showing || queue.length === 0) return;
@@ -164,9 +172,9 @@
       `;
 
         if (data.audio_url) {
-          const audio = new Audio(data.audio_url);
-          audio.volume = alertsCfg.audio_volume ?? 1.0;
-          audio.play().catch(() => {});
+          activeAudio = new Audio(data.audio_url);
+          activeAudio.volume = alertsCfg.audio_volume ?? 1.0;
+          activeAudio.play().catch(() => {});
         }
 
         container.appendChild(card);
@@ -175,6 +183,7 @@
           card.classList.add("out");
           setTimeout(() => {
             card.remove();
+            activeAudio = null;
             showing = false;
             processQueue();
           }, 400);
@@ -207,6 +216,8 @@
           alertsCfg = data.alerts || {};
         },
         "alert.trigger": (data) => enqueueAlert(data),
+        "alerts.toggle": (data) => { if (!data.enabled) stopAlerts(); },
+        "alerts.queue.clear": () => stopAlerts(),
       });
     </script>
   </body>

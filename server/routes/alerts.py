@@ -3,6 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Body
 
 from ..media import pick_audio, pick_clip
+from ..state import state
 from ..ws_manager import manager
 
 router = APIRouter()
@@ -20,3 +21,23 @@ async def fire_alert(
         data["audio_url"] = audio_url
     await manager.broadcast({"type": "alert.trigger", "data": data})
     return {"ok": True, "alert_type": alert_type}
+
+
+@router.post("/alerts/on")
+async def alerts_on() -> dict:
+    state.alerts_enabled = True
+    await manager.broadcast({"type": "alerts.toggle", "data": {"enabled": True}})
+    return {"ok": True, "enabled": True}
+
+
+@router.post("/alerts/off")
+async def alerts_off() -> dict:
+    state.alerts_enabled = False
+    await manager.broadcast({"type": "alerts.toggle", "data": {"enabled": False}})
+    return {"ok": True, "enabled": False}
+
+
+@router.post("/alerts/queue/clear")
+async def clear_queue() -> dict:
+    await manager.broadcast({"type": "alerts.queue.clear"})
+    return {"ok": True}

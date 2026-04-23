@@ -47,9 +47,11 @@ duration = 5
 [alerts.channel_point]
 audio = ""
 duration = 5
+cooldown_s = 30
 
 [alerts.follower]
 duration = 5
+cooldown_s = 10
 
 [scenes]
 default = "brb"
