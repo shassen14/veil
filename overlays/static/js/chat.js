@@ -27,27 +27,22 @@ function _appendWords(container, text) {
   }
 }
 
-function renderMessageContent(message, twitchEmotes) {
+function renderMessageContent(message, fragments) {
   const frag = document.createDocumentFragment();
-  const reps = [];
-  for (const emote of (twitchEmotes || [])) {
-    for (const pos of (emote.positions || [])) {
-      const [s, e] = pos.split("-").map(Number);
-      if (!isNaN(s) && !isNaN(e))
-        reps.push({ start: s, end: e, id: emote.id, name: message.slice(s, e + 1) });
+  if (!fragments || !fragments.length) {
+    _appendWords(frag, message);
+    return frag;
+  }
+  for (const f of fragments) {
+    if (f.type === "emote") {
+      frag.appendChild(_emoteImg(
+        `https://static-cdn.jtvnw.net/emoticons/v2/${f.id}/default/dark/2.0`,
+        f.text,
+      ));
+    } else {
+      _appendWords(frag, f.text);
     }
   }
-  reps.sort((a, b) => a.start - b.start);
-  let cursor = 0;
-  for (const rep of reps) {
-    if (cursor < rep.start) _appendWords(frag, message.slice(cursor, rep.start));
-    frag.appendChild(_emoteImg(
-      `https://static-cdn.jtvnw.net/emoticons/v2/${rep.id}/default/dark/2.0`,
-      rep.name,
-    ));
-    cursor = rep.end + 1;
-  }
-  if (cursor < message.length) _appendWords(frag, message.slice(cursor));
   return frag;
 }
 
@@ -78,6 +73,6 @@ function buildMessageEl(data) {
   author.textContent = data.display_name + ":";
   el.appendChild(author);
   el.appendChild(document.createTextNode(" "));
-  el.appendChild(renderMessageContent(data.message, data.emotes));
+  el.appendChild(renderMessageContent(data.message, data.fragments));
   return el;
 }
