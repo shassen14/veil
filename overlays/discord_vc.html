@@ -1,141 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="/overlays/static/css/tokens.css" />
-  <link rel="stylesheet" href="/overlays/static/css/base.css" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: transparent; font-family: "Inter", "Segoe UI", sans-serif; overflow: hidden; }
-
-    #vc {
-      position: fixed;
-      bottom: 16px;
-      left: 10px;
-      right: 10px;
-      display: grid;
-      gap: 8px;
-      transition: opacity 0.5s ease;
-    }
-
-    #vc.empty { opacity: 0; pointer-events: none; }
-
-    .member {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      background: rgba(0, 0, 0, 0.65);
-      border-radius: 12px;
-      padding: 8px 4px;
-      border: 2px solid transparent;
-      transition: border-color 0.15s ease;
-      min-width: 0;
-    }
-
-    .member.speaking { border-color: #43b581; }
-    .member.muted { opacity: 0.5; }
-
-    .member .avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #36393f;
-      object-fit: cover;
-    }
-
-    .member .name {
-      color: #fff;
-      font-size: 11px;
-      font-weight: 600;
-      text-align: center;
-      width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      padding: 0 4px;
-    }
-
-    .member .mic-off {
-      font-size: 10px;
-      opacity: 0.7;
-    }
-
-    /* horizontal pill layout for 1–2 members */
-    #vc.list .member {
-      flex-direction: row;
-      gap: 10px;
-      padding: 6px 14px 6px 6px;
-      border-radius: 30px;
-      justify-content: flex-start;
-    }
-
-    #vc.list .member .avatar {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-    }
-
-    #vc.list .member .name {
-      font-size: 14px;
-      text-align: left;
-      padding: 0;
-    }
-  </style>
-</head>
-<body>
-  <div id="vc" class="empty"></div>
-
-  <script src="/overlays/static/js/veil.js"></script>
-  <script>
-    const vc = document.getElementById("vc");
-
-    function render(members) {
-      vc.innerHTML = "";
-      vc.classList.toggle("empty", members.length === 0);
-
-      if (members.length <= 2) {
-        vc.className = members.length === 0 ? "empty" : "list";
-        vc.style.gridTemplateColumns = "1fr";
-      } else {
-        vc.className = "";
-        const cols = members.length <= 4 ? 2 : 4;
-        vc.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/overlays/static/css/tokens.css" />
+    <link rel="stylesheet" href="/overlays/static/css/base.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: transparent;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        overflow: hidden;
       }
 
-      members.forEach((m) => {
-        const el = document.createElement("div");
-        el.className = `member${m.speaking ? " speaking" : ""}${m.muted ? " muted" : ""}`;
-        el.dataset.userId = m.user_id;
+      #vc {
+        position: fixed;
+        bottom: 16px;
+        left: 10px;
+        right: 10px;
+        display: grid;
+        gap: 8px;
+        transition: opacity 0.5s ease;
+      }
 
-        const img = document.createElement("img");
-        img.className = "avatar";
-        img.src = m.avatar_url || "/overlays/static/img/default_avatar.png";
-        img.alt = m.display_name;
-        img.onerror = () => { img.src = "/overlays/static/img/default_avatar.png"; };
+      #vc.empty {
+        opacity: 0;
+        pointer-events: none;
+      }
 
-        const name = document.createElement("span");
-        name.className = "name";
-        name.textContent = m.display_name;
+      .member {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        background: rgba(0, 0, 0, 0.65);
+        border-radius: 12px;
+        padding: 8px 4px;
+        border: 2px solid transparent;
+        transition: border-color 0.15s ease;
+        min-width: 0;
+      }
 
-        el.appendChild(img);
-        el.appendChild(name);
+      .member.speaking {
+        border-color: #43b581;
+      }
+      .member.muted {
+        opacity: 0.5;
+      }
 
-        if (m.muted) {
-          const mic = document.createElement("span");
-          mic.className = "mic-off";
-          mic.textContent = "🔇";
-          el.appendChild(mic);
+      .member .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #36393f;
+        object-fit: cover;
+      }
+
+      .member .name {
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 4px;
+      }
+
+      .member .mic-off {
+        font-size: 10px;
+        opacity: 0.7;
+      }
+
+      /* horizontal pill layout for 1–2 members */
+      #vc.list .member {
+        flex-direction: row;
+        gap: 10px;
+        padding: 6px 14px 6px 6px;
+        border-radius: 30px;
+        justify-content: flex-start;
+      }
+
+      #vc.list .member .avatar {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+      }
+
+      #vc.list .member .name {
+        font-size: 14px;
+        text-align: left;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="vc" class="empty"></div>
+
+    <script src="/overlays/static/js/veil.js"></script>
+    <script>
+      const vc = document.getElementById("vc");
+
+      function render(members) {
+        vc.innerHTML = "";
+        vc.classList.toggle("empty", members.length === 0);
+
+        if (members.length <= 2) {
+          vc.className = members.length === 0 ? "empty" : "list";
+          vc.style.gridTemplateColumns = "1fr";
+        } else {
+          vc.className = "";
+          const cols = members.length <= 4 ? 2 : 4;
+          vc.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
         }
 
-        vc.appendChild(el);
-      });
-    }
+        members.forEach((m) => {
+          const el = document.createElement("div");
+          el.className = `member${m.speaking ? " speaking" : ""}${m.muted ? " muted" : ""}`;
+          el.dataset.userId = m.user_id;
 
-    createVeilSocket({
-      "state.sync": (data) => render(data.discord_members || []),
-      "discord.voice.update": (data) => render(data.members || []),
-    });
-  </script>
-</body>
+          const img = document.createElement("img");
+          img.className = "avatar";
+          img.src = m.avatar_url || "/overlays/static/img/default_avatar.png";
+          img.alt = m.display_name;
+          img.onerror = () => {
+            img.src = "/overlays/static/img/default_avatar.png";
+          };
+
+          const name = document.createElement("span");
+          name.className = "name";
+          name.textContent = m.display_name;
+
+          el.appendChild(img);
+          el.appendChild(name);
+
+          if (m.muted) {
+            const mic = document.createElement("span");
+            mic.className = "mic-off";
+            mic.textContent = "🔇";
+            el.appendChild(mic);
+          }
+
+          vc.appendChild(el);
+        });
+      }
+
+      createVeilSocket({
+        "state.sync": (data) => render(data.discord_members || []),
+        "discord.voice.update": (data) => render(data.members || []),
+      });
+    </script>
+  </body>
 </html>

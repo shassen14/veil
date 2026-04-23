@@ -1,178 +1,213 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="/overlays/static/css/tokens.css" />
-  <link rel="stylesheet" href="/overlays/static/css/base.css" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: transparent; font-family: "Inter", "Segoe UI", sans-serif; overflow: hidden; }
-
-    #alert-container {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: center;
-      gap: 12px;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .alert-card {
-      background: rgba(0, 0, 0, 0.8);
-      border-radius: 12px;
-      padding: 14px 24px;
-      color: #fff;
-      text-align: center;
-      width: 100%;
-      flex: 1 0 auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      box-sizing: border-box;
-      animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    .alert-card.out {
-      animation: slideOut 0.4s ease forwards;
-    }
-
-    .alert-card .type {
-      font-size: 2vw;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      opacity: 0.6;
-      margin-bottom: 0.4em;
-    }
-
-    .alert-card .headline {
-      font-size: 6vw;
-      font-weight: 700;
-      line-height: 1.1;
-    }
-
-    .alert-card .sub-text {
-      font-size: 3vw;
-      opacity: 0.75;
-      margin-top: 0.4em;
-    }
-
-    .alert-gif {
-      max-height: 160px;
-      max-width: 100%;
-      object-fit: contain;
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-      to   { opacity: 1; transform: translateY(0)    scale(1); }
-    }
-    @keyframes slideOut {
-      to { opacity: 0; transform: translateY(-10px) scale(0.97); }
-    }
-  </style>
-</head>
-<body>
-  <div id="alert-container"></div>
-
-  <script src="/overlays/static/js/veil.js"></script>
-  <script>
-    const container = document.getElementById("alert-container");
-
-    const LABELS = {
-      sub:           "New Subscriber",
-      resub:         "Resubscribed",
-      giftsub:       "Gift Sub",
-      giftbomb:      "Gift Bomb",
-      raid:          "Incoming Raid",
-      bits:          "Bits",
-      channel_point: "Channel Point",
-      follower:      "New Follower",
-    };
-
-    function buildHeadline(type, data) {
-      switch (type) {
-        case "sub":     return data.display_name;
-        case "resub":   return `${data.display_name} · ${data.cumulative_months} months`;
-        case "giftsub": return `${data.gifter_display_name} → ${data.recipient_display_name}`;
-        case "giftbomb": return `${data.gifter_display_name} gifted ${data.count} subs!`;
-        case "raid":    return `${data.from_display_name} — ${data.viewer_count} viewers`;
-        case "bits":    return `${data.display_name} · ${data.bits} bits`;
-        case "channel_point": return `${data.display_name} · ${data.reward_title}`;
-        case "follower":      return data.display_name;
-        default:        return data.display_name || type;
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/overlays/static/css/tokens.css" />
+    <link rel="stylesheet" href="/overlays/static/css/base.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-    }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        font-family: "Inter", "Segoe UI", sans-serif;
+        overflow: hidden;
+      }
 
-    function buildSubText(type, data) {
-      if (type === "resub" && data.message) return data.message;
-      if (type === "bits"  && data.message) return data.message;
-      if (type === "channel_point" && data.user_input) return data.user_input;
-      return "";
-    }
+      #alert-container {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: 12px;
+        pointer-events: none;
+        overflow: hidden;
+      }
 
-    const queue = [];
-    let showing = false;
+      .alert-card {
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 12px;
+        padding: 14px 24px;
+        color: #fff;
+        text-align: center;
+        width: 100%;
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
+        animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
 
-    function processQueue() {
-      if (showing || queue.length === 0) return;
-      showing = true;
+      .alert-card.out {
+        animation: slideOut 0.4s ease forwards;
+      }
 
-      const data = queue.shift();
-      const type = data.alert_type;
-      const card = document.createElement("div");
-      card.className = `alert-card alert-${type}`;
+      .alert-card .type {
+        font-size: 2vw;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        opacity: 0.6;
+        margin-bottom: 0.4em;
+      }
 
-      card.innerHTML = `
+      .alert-card .headline {
+        font-size: 6vw;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+
+      .alert-card .sub-text {
+        font-size: 3vw;
+        opacity: 0.75;
+        margin-top: 0.4em;
+      }
+
+      .alert-gif {
+        max-height: 160px;
+        max-width: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      @keyframes slideOut {
+        to {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.97);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="alert-container"></div>
+
+    <script src="/overlays/static/js/veil.js"></script>
+    <script>
+      const container = document.getElementById("alert-container");
+
+      const LABELS = {
+        sub: "New Subscriber",
+        resub: "Resubscribed",
+        giftsub: "Gift Sub",
+        giftbomb: "Gift Bomb",
+        raid: "Incoming Raid",
+        bits: "Bits",
+        channel_point: "Channel Point",
+        follower: "New Follower",
+      };
+
+      function buildHeadline(type, data) {
+        switch (type) {
+          case "sub":
+            return data.display_name;
+          case "resub":
+            return `${data.display_name} · ${data.cumulative_months} months`;
+          case "giftsub":
+            return `${data.gifter_display_name} → ${data.recipient_display_name}`;
+          case "giftbomb":
+            return `${data.gifter_display_name} gifted ${data.count} subs!`;
+          case "raid":
+            return `${data.from_display_name} — ${data.viewer_count} viewers`;
+          case "bits":
+            return `${data.display_name} · ${data.bits} bits`;
+          case "channel_point":
+            return `${data.display_name} · ${data.reward_title}`;
+          case "follower":
+            return data.display_name;
+          default:
+            return data.display_name || type;
+        }
+      }
+
+      function buildSubText(type, data) {
+        if (type === "resub" && data.message) return data.message;
+        if (type === "bits" && data.message) return data.message;
+        if (type === "channel_point" && data.user_input) return data.user_input;
+        return "";
+      }
+
+      const queue = [];
+      let showing = false;
+
+      function processQueue() {
+        if (showing || queue.length === 0) return;
+        showing = true;
+
+        const data = queue.shift();
+        const type = data.alert_type;
+        const card = document.createElement("div");
+        card.className = `alert-card alert-${type}`;
+
+        card.innerHTML = `
         ${data.clip_url ? `<img class="alert-gif" src="${data.clip_url}" alt="">` : ""}
         <div class="type">${LABELS[type] || type}</div>
         <div class="headline">${buildHeadline(type, data)}</div>
         ${buildSubText(type, data) ? `<div class="sub-text">${buildSubText(type, data)}</div>` : ""}
       `;
 
-      if (data.audio_url) {
-        const audio = new Audio(data.audio_url);
-        audio.volume = alertsCfg.audio_volume ?? 1.0;
-        audio.play().catch(() => {});
+        if (data.audio_url) {
+          const audio = new Audio(data.audio_url);
+          audio.volume = alertsCfg.audio_volume ?? 1.0;
+          audio.play().catch(() => {});
+        }
+
+        container.appendChild(card);
+
+        setTimeout(() => {
+          card.classList.add("out");
+          setTimeout(() => {
+            card.remove();
+            showing = false;
+            processQueue();
+          }, 400);
+        }, getDuration(type));
       }
 
-      container.appendChild(card);
+      function enqueueAlert(data) {
+        const max = alertsCfg.queue_max ?? 10;
+        if (queue.length < max) queue.push(data);
+        processQueue();
+      }
 
-      setTimeout(() => {
-        card.classList.add("out");
-        setTimeout(() => {
-          card.remove();
-          showing = false;
-          processQueue();
-        }, 400);
-      }, getDuration(type));
-    }
+      let alertsCfg = {};
 
-    function enqueueAlert(data) {
-      const max = alertsCfg.queue_max ?? 10;
-      if (queue.length < max) queue.push(data);
-      processQueue();
-    }
+      fetch("/config")
+        .then((r) => r.json())
+        .then((cfg) => {
+          alertsCfg = cfg.alerts || {};
+        });
 
-    let alertsCfg = {};
+      function getDuration(type) {
+        return (alertsCfg[type]?.duration ?? 3) * 1000;
+      }
 
-    fetch("/config")
-      .then(r => r.json())
-      .then(cfg => { alertsCfg = cfg.alerts || {}; });
-
-    function getDuration(type) {
-      return (alertsCfg[type]?.duration ?? 3) * 1000;
-    }
-
-    createVeilSocket({
-      "state.sync": (data) => { if (data.config) alertsCfg = data.config.alerts || {}; },
-      "config.update": (data) => { alertsCfg = data.alerts || {}; },
-      "alert.trigger": (data) => enqueueAlert(data),
-    });
-  </script>
-</body>
+      createVeilSocket({
+        "state.sync": (data) => {
+          if (data.config) alertsCfg = data.config.alerts || {};
+        },
+        "config.update": (data) => {
+          alertsCfg = data.alerts || {};
+        },
+        "alert.trigger": (data) => enqueueAlert(data),
+      });
+    </script>
+  </body>
 </html>

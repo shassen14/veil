@@ -2,14 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/overlays/static/css/tokens.css" />
     <link rel="stylesheet" href="/overlays/static/css/base.css" />
     <style>
       body {
         background: transparent;
         font-family: var(--font-mono);
-        font-size: 26px;
+        font-size: 22px;
         overflow: hidden;
       }
 
@@ -19,12 +22,16 @@
         display: flex;
         flex-direction: column;
         gap: 3px;
-        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 22%);
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          transparent 0%,
+          black 22%
+        );
         mask-image: linear-gradient(to bottom, transparent 0%, black 22%);
       }
 
       .msg {
-        background: rgba(0, 0, 0, 0.50);
+        background: rgba(0, 0, 0, 0.5);
         border-left: 2px solid var(--color);
         padding: 4px 10px;
         color: #ffffff;
@@ -36,8 +43,14 @@
 
       /* chat.html slides in from the left */
       @keyframes fadeIn {
-        from { opacity: 0; transform: translateX(-6px); }
-        to   { opacity: 1; transform: translateX(0); }
+        from {
+          opacity: 0;
+          transform: translateX(-6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
       }
 
       .msg::before {
@@ -46,9 +59,14 @@
         text-shadow: 0 0 7px rgba(var(--color-rgb), 0.8);
       }
 
-      .msg.fading { opacity: 0; }
+      .msg.fading {
+        opacity: 0;
+      }
 
-      .msg .author       { font-weight: normal; margin-right: 4px; }
+      .msg .author {
+        font-weight: normal;
+        margin-right: 4px;
+      }
 
       .msg .badge {
         display: inline-block;
@@ -74,7 +92,9 @@
         opacity: 0.8;
       }
 
-      #chat.hidden { display: none; }
+      #chat.hidden {
+        display: none;
+      }
 
       .msg.pending {
         border-left-color: #ff9f0a;
@@ -105,8 +125,14 @@
         pointer-events: auto;
       }
 
-      .mod-btn.approve { border: 1px solid var(--color); color: var(--color); }
-      .mod-btn.deny    { border: 1px solid #ff453a;      color: #ff453a; }
+      .mod-btn.approve {
+        border: 1px solid var(--color);
+        color: var(--color);
+      }
+      .mod-btn.deny {
+        border: 1px solid #ff453a;
+        color: #ff453a;
+      }
     </style>
   </head>
   <body>
@@ -124,9 +150,9 @@
 
       const POSITIONS = {
         "bottom-right": { bottom: "20px", right: "20px" },
-        "bottom-left":  { bottom: "20px", left: "20px" },
-        "top-right":    { top: "20px",    right: "20px" },
-        "top-left":     { top: "20px",    left: "20px" },
+        "bottom-left": { bottom: "20px", left: "20px" },
+        "top-right": { top: "20px", right: "20px" },
+        "top-left": { top: "20px", left: "20px" },
       };
 
       let MAX_MESSAGES = 20;
@@ -215,13 +241,15 @@
       }
 
       function clearUserMessages(username) {
-        chatEl.querySelectorAll(`[data-username="${username}"]`).forEach((el) => {
-          const msgId = el.dataset.id;
-          if (msgId) messageMap.delete(msgId);
-          const idx = messages.indexOf(el);
-          if (idx !== -1) messages.splice(idx, 1);
-          el.remove();
-        });
+        chatEl
+          .querySelectorAll(`[data-username="${username}"]`)
+          .forEach((el) => {
+            const msgId = el.dataset.id;
+            if (msgId) messageMap.delete(msgId);
+            const idx = messages.indexOf(el);
+            if (idx !== -1) messages.splice(idx, 1);
+            el.remove();
+          });
       }
 
       function moderateMessage(id, action) {
@@ -242,28 +270,35 @@
         }
       }
 
-      fetch("/config").then((r) => r.json()).then(applyConfig);
+      fetch("/config")
+        .then((r) => r.json())
+        .then(applyConfig);
 
       createVeilSocket({
         "state.sync": (data) => {
           if (data.config) applyConfig(data.config);
           if (!data.chat_visible) chatEl.classList.add("hidden");
-          if (data.chat_sources) chatSources = { ...chatSources, ...data.chat_sources };
-          if (data.pending_messages) data.pending_messages.forEach(addPendingMessage);
+          if (data.chat_sources)
+            chatSources = { ...chatSources, ...data.chat_sources };
+          if (data.pending_messages)
+            data.pending_messages.forEach(addPendingMessage);
           applyEmotes(data.emote_map);
         },
-        "config.update":      (data) => applyConfig(data),
-        "emotes.update":      (data) => applyEmotes(data),
-        "chat.message":       (data) => addMessage(data),
-        "chat.message.delete":(data) => deleteMessage(data.message_id),
-        "chat.clear_user":    (data) => clearUserMessages(data.username),
-        "modqueue.pending":   (data) => addPendingMessage(data),
-        "modqueue.decision":  (data) => onModqueueDecision(data),
-        "modqueue.resolved":  (data) => deleteMessage(data.message_id),
+        "config.update": (data) => applyConfig(data),
+        "emotes.update": (data) => applyEmotes(data),
+        "chat.message": (data) => addMessage(data),
+        "chat.message.delete": (data) => deleteMessage(data.message_id),
+        "chat.clear_user": (data) => clearUserMessages(data.username),
+        "modqueue.pending": (data) => addPendingMessage(data),
+        "modqueue.decision": (data) => onModqueueDecision(data),
+        "modqueue.resolved": (data) => deleteMessage(data.message_id),
         "overlay.toggle": (data) => {
-          if (data.overlay === "chat") chatEl.classList.toggle("hidden", !data.visible);
+          if (data.overlay === "chat")
+            chatEl.classList.toggle("hidden", !data.visible);
         },
-        "chat.source.toggle": (data) => { chatSources[data.platform] = data.enabled; },
+        "chat.source.toggle": (data) => {
+          chatSources[data.platform] = data.enabled;
+        },
       });
     </script>
   </body>
