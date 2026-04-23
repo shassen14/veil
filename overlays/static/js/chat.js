@@ -34,11 +34,10 @@ function renderMessageContent(message, fragments) {
     return frag;
   }
   for (const f of fragments) {
-    if (f.type === "emote") {
-      frag.appendChild(_emoteImg(
-        `https://static-cdn.jtvnw.net/emoticons/v2/${f.id}/default/dark/2.0`,
-        f.text,
-      ));
+    if (f.type === "emote" && f.id) {
+      const url = `https://static-cdn.jtvnw.net/emoticons/v2/${f.id}/default/dark/2.0`;
+      emoteMap.set(f.text, url);
+      frag.appendChild(_emoteImg(url, f.text));
     } else {
       _appendWords(frag, f.text);
     }
