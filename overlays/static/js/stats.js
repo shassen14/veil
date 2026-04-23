@@ -19,6 +19,8 @@ function applyViewerStats(data) {
     setValue("last-raider", data.last_raider.display_name);
   if (data.last_bits?.display_name)
     setValue("last-bits", `${data.last_bits.display_name} (${data.last_bits.bits})`);
-  if (data.longest_subs?.length)
-    setValue("longest-sub", data.longest_subs[0].display_name);
+  if (data.longest_subs?.length) {
+    const s = data.longest_subs[0];
+    setValue("longest-sub", `${s.display_name} (${s.cumulative_months}mo)`);
+  }
 }
