@@ -171,15 +171,9 @@
         ${buildSubText(type, data) ? `<div class="sub-text">${buildSubText(type, data)}</div>` : ""}
       `;
 
-        if (data.audio_url) {
-          activeAudio = new Audio(data.audio_url);
-          activeAudio.volume = alertsCfg.audio_volume ?? 1.0;
-          activeAudio.play().catch(() => {});
-        }
-
         container.appendChild(card);
 
-        setTimeout(() => {
+        function dismiss() {
           card.classList.add("out");
           setTimeout(() => {
             card.remove();
@@ -187,7 +181,17 @@
             showing = false;
             processQueue();
           }, 400);
-        }, getDuration(type));
+        }
+
+        if (data.audio_url) {
+          activeAudio = new Audio(data.audio_url);
+          activeAudio.volume = alertsCfg.audio_volume ?? 1.0;
+          activeAudio.play().catch(() => {});
+          const fallback = setTimeout(dismiss, 7000);
+          activeAudio.addEventListener("ended", () => { clearTimeout(fallback); dismiss(); });
+        } else {
+          setTimeout(dismiss, getDuration(type));
+        }
       }
 
       function enqueueAlert(data) {
