@@ -17,8 +17,9 @@ async def fire_alert(
     data: dict = {"alert_type": alert_type, **(payload or {})}
     if clip_url := pick_clip(alert_type):
         data["clip_url"] = clip_url
-    if audio_url := pick_audio(alert_type):
-        data["audio_url"] = audio_url
+    if state.alerts_audio_enabled:
+        if audio_url := pick_audio(alert_type):
+            data["audio_url"] = audio_url
     await manager.broadcast({"type": "alert.trigger", "data": data})
     return {"ok": True, "alert_type": alert_type}
 
@@ -35,6 +36,20 @@ async def alerts_off() -> dict:
     state.alerts_enabled = False
     await manager.broadcast({"type": "alerts.toggle", "data": {"enabled": False}})
     return {"ok": True, "enabled": False}
+
+
+@router.post("/alerts/audio/on")
+async def alerts_audio_on() -> dict:
+    state.alerts_audio_enabled = True
+    await manager.broadcast({"type": "alerts.audio.toggle", "data": {"enabled": True}})
+    return {"ok": True, "audio_enabled": True}
+
+
+@router.post("/alerts/audio/off")
+async def alerts_audio_off() -> dict:
+    state.alerts_audio_enabled = False
+    await manager.broadcast({"type": "alerts.audio.toggle", "data": {"enabled": False}})
+    return {"ok": True, "audio_enabled": False}
 
 
 @router.post("/alerts/queue/clear")

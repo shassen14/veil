@@ -163,6 +163,7 @@ def _alert_data(alert_type: str, payload: dict) -> dict:
     data: dict = {"alert_type": alert_type, **payload}
     if clip_url := pick_clip(alert_type):
         data["clip_url"] = clip_url
-    if audio_url := pick_audio(alert_type):
-        data["audio_url"] = audio_url
+    if state.alerts_audio_enabled:
+        if audio_url := pick_audio(alert_type):
+            data["audio_url"] = audio_url
     return data

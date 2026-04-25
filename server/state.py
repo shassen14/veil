@@ -15,6 +15,7 @@ class VeilState:
     recent_subs: list = field(default_factory=list)
     longest_subs: list = field(default_factory=list)
     alerts_enabled: bool = True
+    alerts_audio_enabled: bool = True
     alert_last_triggered: dict = field(default_factory=dict)
 
 
