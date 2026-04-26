@@ -59,6 +59,7 @@ function createChatManager(chatEl, opts = {}) {
   const messageMap = new Map();
   let maxMessages = opts.maxMessages ?? 20;
   let fadeTimeout = opts.fadeTimeout ?? 0;
+  const disableFade = opts.disableFade ?? false;
   const chatSources = opts.chatSources ? { ...opts.chatSources } : null;
 
   function _trim() {
@@ -123,7 +124,7 @@ function createChatManager(chatEl, opts = {}) {
   function applyConfig(cfg) {
     const c = cfg?.chat || {};
     if (c.max_messages != null) maxMessages = c.max_messages;
-    if (c.fade_timeout != null) fadeTimeout = c.fade_timeout;
+    if (!disableFade && c.fade_timeout != null) fadeTimeout = c.fade_timeout;
   }
 
   function setChatSource(platform, enabled) {

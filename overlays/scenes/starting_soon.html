@@ -59,8 +59,8 @@
         justify-content: flex-end;
         gap: 5px;
         overflow: hidden;
-        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
-        mask-image: linear-gradient(to bottom, transparent 0%, black 28%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%);
+        mask-image: linear-gradient(to bottom, transparent 0%, black 8%);
       }
 
       .msg {
@@ -165,7 +165,7 @@
       setInterval(tick, 1000);
 
       const chatEl = document.getElementById("chat");
-      const chat = createChatManager(chatEl);
+      const chat = createChatManager(chatEl, { disableFade: true });
 
       createVeilSocket({
         "state.sync": (data) => {
