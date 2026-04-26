@@ -44,6 +44,8 @@
       }
 
       .stat-value.empty { opacity: 0.15; }
+
+      .container { position: relative; z-index: 2; }
     </style>
   </head>
   <body>
@@ -66,6 +68,7 @@
       </div>
     </div>
 
+    <script src="/overlays/static/js/rain.js"></script>
     <script src="/overlays/static/js/veil.js"></script>
     <script src="/overlays/static/js/stats.js"></script>
     <script>
@@ -73,6 +76,7 @@
         "state.sync":             (data) => applyViewerStats(data),
         "viewer_stats.update":    (data) => applyViewerStats(data),
         "viewer_stats.bootstrap": (data) => applyViewerStats(data),
+        "chat.message":           ()     => feedRain(),
       });
     </script>
   </body>

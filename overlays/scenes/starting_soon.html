@@ -114,6 +114,10 @@
         letter-spacing: 0.06em;
         text-shadow: 0 0 10px rgba(var(--color-rgb), 0.4);
       }
+
+      .container  { position: relative; z-index: 2; }
+      #chat       { z-index: 2; }
+      .stats-bar  { z-index: 2; }
     </style>
   </head>
   <body>
@@ -145,6 +149,7 @@
       </div>
     </div>
 
+    <script src="/overlays/static/js/rain.js"></script>
     <script src="/overlays/static/js/veil.js"></script>
     <script src="/overlays/static/js/chat.js"></script>
     <script src="/overlays/static/js/stats.js"></script>
@@ -161,17 +166,23 @@
 
       const chatEl = document.getElementById("chat");
       const messages = [];
-      const MAX_MESSAGES = 20;
+      let maxMessages = 20;
 
       function addMessage(data) {
+        feedRain();
         const el = buildMessageEl(data);
         chatEl.appendChild(el);
         messages.push(el);
-        if (messages.length > MAX_MESSAGES) messages.shift().remove();
+        if (messages.length > maxMessages) messages.shift().remove();
+      }
+
+      function applyConfig(cfg) {
+        maxMessages = cfg?.chat?.max_messages ?? 20;
       }
 
       createVeilSocket({
-        "state.sync":             (data) => { applyEmotes(data.emote_map); applyViewerStats(data); },
+        "state.sync":             (data) => { applyEmotes(data.emote_map); applyViewerStats(data); if (data.config) applyConfig(data.config); },
+        "config.update":          (data) => applyConfig(data),
         "emotes.update":          (data) => applyEmotes(data),
         "chat.message":           (data) => addMessage(data),
         "viewer_stats.update":    (data) => applyViewerStats(data),
