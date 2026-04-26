@@ -165,26 +165,19 @@
       setInterval(tick, 1000);
 
       const chatEl = document.getElementById("chat");
-      const messages = [];
-      let maxMessages = 20;
-
-      function addMessage(data) {
-        feedRain();
-        const el = buildMessageEl(data);
-        chatEl.appendChild(el);
-        messages.push(el);
-        if (messages.length > maxMessages) messages.shift().remove();
-      }
-
-      function applyConfig(cfg) {
-        maxMessages = cfg?.chat?.max_messages ?? 20;
-      }
+      const chat = createChatManager(chatEl);
 
       createVeilSocket({
-        "state.sync":             (data) => { applyEmotes(data.emote_map); applyViewerStats(data); if (data.config) applyConfig(data.config); },
-        "config.update":          (data) => applyConfig(data),
+        "state.sync": (data) => {
+          applyEmotes(data.emote_map);
+          applyViewerStats(data);
+          if (data.config) chat.applyConfig(data.config);
+        },
+        "config.update":          (data) => chat.applyConfig(data),
         "emotes.update":          (data) => applyEmotes(data),
-        "chat.message":           (data) => addMessage(data),
+        "chat.message":           (data) => { feedRain(); chat.addMessage(data); },
+        "chat.message.delete":    (data) => chat.deleteMessage(data.message_id),
+        "chat.clear_user":        (data) => chat.clearUserMessages(data.username),
         "viewer_stats.update":    (data) => applyViewerStats(data),
         "viewer_stats.bootstrap": (data) => applyViewerStats(data),
       });

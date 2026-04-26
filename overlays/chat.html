@@ -142,9 +142,6 @@
     <script src="/overlays/static/js/chat.js"></script>
     <script>
       const chatEl = document.getElementById("chat");
-      const messages = [];
-      const messageMap = new Map();
-
       const urlParams = new URLSearchParams(window.location.search);
       const secret = urlParams.get("secret") || "";
 
@@ -155,55 +152,21 @@
         "top-left": { top: "20px", left: "20px" },
       };
 
-      let MAX_MESSAGES = 20;
-      let FADE_TIMEOUT = 0;
-      let chatSources = { twitch: true, youtube: true };
+      const chat = createChatManager(chatEl, {
+        chatSources: { twitch: true, youtube: true },
+      });
 
       function applyConfig(cfg) {
-        const chatCfg = cfg.chat || {};
-        MAX_MESSAGES = chatCfg.max_messages ?? 20;
-        FADE_TIMEOUT = chatCfg.fade_timeout ?? 0;
-        const pos = POSITIONS[chatCfg.position] || POSITIONS["bottom-right"];
+        chat.applyConfig(cfg);
+        const pos = POSITIONS[cfg?.chat?.position] || POSITIONS["bottom-right"];
         Object.assign(chatEl.style, pos);
       }
 
-      function _trimMessages() {
-        if (messages.length > MAX_MESSAGES) {
-          const old = messages.shift();
-          if (old.dataset.id) messageMap.delete(old.dataset.id);
-          old.remove();
-        }
-      }
-
-      function addMessage(data) {
-        if (data.source && chatSources[data.source] === false) return;
-        if (data.message_id && messageMap.has(data.message_id)) return;
-
-        const el = buildMessageEl(data);
-        chatEl.appendChild(el);
-        if (data.message_id) messageMap.set(data.message_id, el);
-        messages.push(el);
-        _trimMessages();
-
-        if (FADE_TIMEOUT > 0) {
-          setTimeout(() => {
-            el.classList.add("fading");
-            setTimeout(() => {
-              el.remove();
-              if (data.message_id) messageMap.delete(data.message_id);
-              const idx = messages.indexOf(el);
-              if (idx !== -1) messages.splice(idx, 1);
-            }, 500);
-          }, FADE_TIMEOUT * 1000);
-        }
-      }
-
       function addPendingMessage(data) {
-        if (messageMap.has(data.message_id)) return;
+        if (chat.messageMap.has(data.message_id)) return;
 
         const el = buildMessageEl(data);
         el.classList.add("pending");
-        el.dataset.id = data.message_id;
 
         const actions = document.createElement("span");
         actions.className = "mod-actions";
@@ -223,33 +186,7 @@
         el.appendChild(actions);
 
         chatEl.appendChild(el);
-        messageMap.set(data.message_id, el);
-        messages.push(el);
-        _trimMessages();
-      }
-
-      function deleteMessage(id) {
-        const el = messageMap.get(id);
-        if (!el) return;
-        el.classList.add("fading");
-        setTimeout(() => {
-          el.remove();
-          messageMap.delete(id);
-          const idx = messages.indexOf(el);
-          if (idx !== -1) messages.splice(idx, 1);
-        }, 500);
-      }
-
-      function clearUserMessages(username) {
-        chatEl
-          .querySelectorAll(`[data-username="${username}"]`)
-          .forEach((el) => {
-            const msgId = el.dataset.id;
-            if (msgId) messageMap.delete(msgId);
-            const idx = messages.indexOf(el);
-            if (idx !== -1) messages.splice(idx, 1);
-            el.remove();
-          });
+        chat.track(el, data.message_id);
       }
 
       function moderateMessage(id, action) {
@@ -260,13 +197,13 @@
       }
 
       function onModqueueDecision(data) {
-        const el = messageMap.get(data.message_id);
+        const el = chat.messageMap.get(data.message_id);
         if (!el) return;
         if (data.decision === "approve") {
           el.classList.remove("pending");
           el.querySelector(".mod-actions")?.remove();
         } else {
-          deleteMessage(data.message_id);
+          chat.deleteMessage(data.message_id);
         }
       }
 
@@ -279,26 +216,24 @@
           if (data.config) applyConfig(data.config);
           if (!data.chat_visible) chatEl.classList.add("hidden");
           if (data.chat_sources)
-            chatSources = { ...chatSources, ...data.chat_sources };
+            Object.entries(data.chat_sources).forEach(([p, v]) => chat.setChatSource(p, v));
           if (data.pending_messages)
             data.pending_messages.forEach(addPendingMessage);
           applyEmotes(data.emote_map);
         },
-        "config.update": (data) => applyConfig(data),
-        "emotes.update": (data) => applyEmotes(data),
-        "chat.message": (data) => addMessage(data),
-        "chat.message.delete": (data) => deleteMessage(data.message_id),
-        "chat.clear_user": (data) => clearUserMessages(data.username),
-        "modqueue.pending": (data) => addPendingMessage(data),
-        "modqueue.decision": (data) => onModqueueDecision(data),
-        "modqueue.resolved": (data) => deleteMessage(data.message_id),
+        "config.update":          (data) => applyConfig(data),
+        "emotes.update":          (data) => applyEmotes(data),
+        "chat.message":           (data) => chat.addMessage(data),
+        "chat.message.delete":    (data) => chat.deleteMessage(data.message_id),
+        "chat.clear_user":        (data) => chat.clearUserMessages(data.username),
+        "modqueue.pending":       (data) => addPendingMessage(data),
+        "modqueue.decision":      (data) => onModqueueDecision(data),
+        "modqueue.resolved":      (data) => chat.deleteMessage(data.message_id),
         "overlay.toggle": (data) => {
           if (data.overlay === "chat")
             chatEl.classList.toggle("hidden", !data.visible);
         },
-        "chat.source.toggle": (data) => {
-          chatSources[data.platform] = data.enabled;
-        },
+        "chat.source.toggle": (data) => chat.setChatSource(data.platform, data.enabled),
       });
     </script>
   </body>

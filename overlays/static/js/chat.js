@@ -1,6 +1,7 @@
 /**
  * Shared chat rendering utilities.
- * Globals: emoteMap, applyEmotes, renderMessageContent, userColor, buildMessageEl
+ * Globals: emoteMap, applyEmotes, renderMessageContent, userColor, buildMessageEl,
+ *          createChatManager
  */
 
 const emoteMap = new Map();
@@ -51,6 +52,85 @@ function userColor(name, twitchColor) {
   for (let i = 0; i < name.length; i++)
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return `hsl(${Math.abs(hash) % 360}, 70%, 65%)`;
+}
+
+function createChatManager(chatEl, opts = {}) {
+  const messages = [];
+  const messageMap = new Map();
+  let maxMessages = opts.maxMessages ?? 20;
+  let fadeTimeout = opts.fadeTimeout ?? 0;
+  const chatSources = opts.chatSources ? { ...opts.chatSources } : null;
+
+  function _trim() {
+    if (messages.length > maxMessages) {
+      const old = messages.shift();
+      if (old.dataset.id) messageMap.delete(old.dataset.id);
+      old.remove();
+    }
+  }
+
+  // Register an externally-built element (e.g. pending mod messages).
+  function track(el, id) {
+    if (id) {
+      el.dataset.id = id;
+      messageMap.set(id, el);
+    }
+    messages.push(el);
+    _trim();
+  }
+
+  function addMessage(data) {
+    if (chatSources && data.source && chatSources[data.source] === false) return;
+    if (data.message_id && messageMap.has(data.message_id)) return;
+    const el = buildMessageEl(data);
+    chatEl.appendChild(el);
+    track(el, data.message_id);
+    if (fadeTimeout > 0) {
+      setTimeout(() => {
+        el.classList.add("fading");
+        setTimeout(() => {
+          el.remove();
+          if (data.message_id) messageMap.delete(data.message_id);
+          const idx = messages.indexOf(el);
+          if (idx !== -1) messages.splice(idx, 1);
+        }, 500);
+      }, fadeTimeout * 1000);
+    }
+  }
+
+  function deleteMessage(id) {
+    const el = messageMap.get(id);
+    if (!el) return;
+    el.classList.add("fading");
+    setTimeout(() => {
+      el.remove();
+      messageMap.delete(id);
+      const idx = messages.indexOf(el);
+      if (idx !== -1) messages.splice(idx, 1);
+    }, 500);
+  }
+
+  function clearUserMessages(username) {
+    chatEl.querySelectorAll(`[data-username="${username}"]`).forEach((el) => {
+      const msgId = el.dataset.id;
+      if (msgId) messageMap.delete(msgId);
+      const idx = messages.indexOf(el);
+      if (idx !== -1) messages.splice(idx, 1);
+      el.remove();
+    });
+  }
+
+  function applyConfig(cfg) {
+    const c = cfg?.chat || {};
+    if (c.max_messages != null) maxMessages = c.max_messages;
+    if (c.fade_timeout != null) fadeTimeout = c.fade_timeout;
+  }
+
+  function setChatSource(platform, enabled) {
+    if (chatSources) chatSources[platform] = enabled;
+  }
+
+  return { messageMap, track, addMessage, deleteMessage, clearUserMessages, applyConfig, setChatSource };
 }
 
 function buildMessageEl(data) {
