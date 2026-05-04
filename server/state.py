@@ -17,6 +17,7 @@ class VeilState:
     alerts_enabled: bool = True
     alerts_audio_enabled: bool = True
     alert_last_triggered: dict = field(default_factory=dict)
+    current_scene: str = ""
 
 
 state = VeilState()

@@ -7,7 +7,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import config, reload as reload_config
-from .routes import alerts, chat, ingest, modqueue, status, test
+from .obs import obs_client
+from .routes import alerts, chat, ingest, modqueue, scenes, status, test
 from .state import state
 from .ws_manager import manager
 
@@ -35,9 +36,15 @@ async def _watch_config() -> None:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    task = asyncio.create_task(_watch_config())
+    await obs_client.connect()
+    config_task = asyncio.create_task(_watch_config())
+    reconnect_task = asyncio.create_task(obs_client.reconnect_loop())
+    keepalive_task = asyncio.create_task(obs_client.keepalive_loop())
     yield
-    task.cancel()
+    config_task.cancel()
+    reconnect_task.cancel()
+    keepalive_task.cancel()
+    await obs_client.disconnect()
 
 
 app = FastAPI(title="veil", version="0.1.0", lifespan=lifespan)
@@ -53,6 +60,7 @@ app.include_router(ingest.router)
 app.include_router(modqueue.router)
 app.include_router(alerts.router)
 app.include_router(chat.router)
+app.include_router(scenes.router)
 app.include_router(status.router)
 app.include_router(test.router)
 
@@ -64,6 +72,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
     await ws.send_json({
         "type": "state.sync",
         "data": {
+            "current_scene": state.current_scene,
             "chat_visible": state.chat_visible,
             "chat_sources": state.chat_sources,
             "discord_members": state.discord_members,

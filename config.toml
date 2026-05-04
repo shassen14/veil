@@ -48,3 +48,8 @@ cooldown_s = 10
 
 [scenes]
 default = "brb"
+
+[obs]
+host = "localhost"
+port = 4455
+password = ""  # overridden by OBS_WS_PASSWORD env var
