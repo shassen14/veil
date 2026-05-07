@@ -1,8 +1,11 @@
 """POST /event — receives all events from boneless_couch."""
 
+import logging
 import time
 
 from fastapi import APIRouter, Depends, Header, HTTPException
+
+log = logging.getLogger(__name__)
 
 from ..config import config
 from ..events import Event
@@ -28,6 +31,7 @@ async def receive_event(event: Event) -> dict:
 async def dispatch(event: Event) -> None:
     t = event.type
     p = event.payload
+    log.info("event received: %s", t)
 
     if t == "twitch.chat.message":
         await manager.broadcast({"type": "chat.message", "data": {**p, "source": "twitch"}})
@@ -156,6 +160,7 @@ def _check_cooldown(alert_type: str) -> bool:
 
 
 def _record_trigger(alert_type: str) -> None:
+    log.info("alert.trigger broadcast: %s", alert_type)
     state.alert_last_triggered[alert_type] = time.time()
 
 
