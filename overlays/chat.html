@@ -217,8 +217,6 @@
           if (!data.chat_visible) chatEl.classList.add("hidden");
           if (data.chat_sources)
             Object.entries(data.chat_sources).forEach(([p, v]) => chat.setChatSource(p, v));
-          if (data.pending_messages)
-            data.pending_messages.forEach(addPendingMessage);
           applyEmotes(data.emote_map);
         },
         "config.update":          (data) => applyConfig(data),
@@ -226,8 +224,6 @@
         "chat.message":           (data) => chat.addMessage(data),
         "chat.message.delete":    (data) => chat.deleteMessage(data.message_id),
         "chat.clear_user":        (data) => chat.clearUserMessages(data.username),
-        "modqueue.pending":       (data) => addPendingMessage(data),
-        "modqueue.decision":      (data) => onModqueueDecision(data),
         "modqueue.resolved":      (data) => chat.deleteMessage(data.message_id),
         "overlay.toggle": (data) => {
           if (data.overlay === "chat")
