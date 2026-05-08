@@ -70,16 +70,19 @@ async def test_alert(alert_type: str) -> dict:
 
 
 @router.post("/chat")
-async def test_chat(message: str = "This is a test chat message!") -> dict:
-    await dispatch(Event(type="twitch.chat.message", ts=time.time(), payload={
+async def test_chat(message: str = "This is a test chat message!", platform: str = "twitch") -> dict:
+    platform = platform if platform in ("twitch", "youtube") else "twitch"
+    event_type = f"{platform}.chat.message"
+    color = "#FF4500" if platform == "twitch" else "#ff0000"
+    await dispatch(Event(type=event_type, ts=time.time(), payload={
         "username": "test_viewer",
         "display_name": "TestViewer",
         "message": message,
-        "color": "#FF4500",
-        "badges": ["subscriber/6"],
+        "color": color,
+        "badges": ["subscriber/6"] if platform == "twitch" else ["member/1"],
         "emotes": [],
-        "message_id": "test-msg-001",
-        "platform": "twitch",
+        "message_id": f"test-msg-{platform}-001",
+        "platform": platform,
     }))
     return {"ok": True}
 

@@ -191,6 +191,7 @@ EVENT_TYPES: dict[str, type[BaseModel]] = {
     "twitch.chat.message": TwitchChatMessagePayload,
     "twitch.chat.message.delete": ChatMessageDeletePayload,
     "twitch.chat.clear_user": ChatClearUserPayload,
+    "youtube.chat.message": TwitchChatMessagePayload,
     "modqueue.pending": ModQueuePendingPayload,
     "modqueue.resolved": ModQueueResolvedPayload,
     "modqueue.update": ModQueueUpdatePayload,

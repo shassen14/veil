@@ -187,7 +187,10 @@
   <div class="card">
     <h2>Chat</h2>
     <input type="text" id="chat-msg" placeholder="Test message…" value="Hello from the test dashboard!">
-    <button class="btn-chat" onclick="sendChat()">▶ Send Chat Message</button>
+    <div class="btn-row">
+      <button class="btn-chat" onclick="sendChat('twitch')">▶ Send as Twitch</button>
+      <button class="btn-yt"   onclick="sendChat('youtube')">▶ Send as YouTube</button>
+    </div>
     <hr class="divider">
     <button onclick="fire('/chat/toggle')">Toggle Chat Visibility</button>
     <div class="btn-row">
@@ -453,9 +456,9 @@
     }
   }
 
-  async function sendChat() {
+  async function sendChat(platform = "twitch") {
     const msg = document.getElementById("chat-msg").value;
-    await fire(`/test/chat?message=${encodeURIComponent(msg)}`);
+    await fire(`/test/chat?message=${encodeURIComponent(msg)}&platform=${platform}`);
   }
 
   async function fireWithName(url, inputId) {

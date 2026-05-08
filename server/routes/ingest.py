@@ -36,6 +36,9 @@ async def dispatch(event: Event) -> None:
     if t == "twitch.chat.message":
         await manager.broadcast({"type": "chat.message", "data": {**p, "source": "twitch"}})
 
+    elif t == "youtube.chat.message":
+        await manager.broadcast({"type": "chat.message", "data": {**p, "source": "youtube"}})
+
     elif t == "twitch.chat.message.delete":
         await manager.broadcast({"type": "chat.message.delete", "data": {"message_id": p["message_id"]}})
 
