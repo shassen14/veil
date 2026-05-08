@@ -14,6 +14,13 @@ async def get_status() -> dict:
         "chat_sources": state.chat_sources,
         "discord_members": state.discord_members,
         "ws_connections": manager.count,
+        "alerts_enabled": state.alerts_enabled,
+        "alerts_audio_enabled": state.alerts_audio_enabled,
+        "current_scene": state.current_scene,
+        "last_follower": state.last_follower,
+        "last_sub": state.last_sub,
+        "last_raider": state.last_raider,
+        "last_bits": state.last_bits,
     }
 
 
