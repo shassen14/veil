@@ -98,3 +98,9 @@ async def ws_endpoint(ws: WebSocket) -> None:
 @app.get("/dashboard.html")
 async def dashboard() -> FileResponse:
     return FileResponse(_ROOT / "dashboard.html")
+
+
+@app.get("/cockpit")
+@app.get("/cockpit.html")
+async def cockpit() -> FileResponse:
+    return FileResponse(_ROOT / "cockpit.html")

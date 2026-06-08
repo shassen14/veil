@@ -75,6 +75,27 @@ Recommended size: 1920×1080, transparent background. The overlays connect as so
 
 ---
 
+## Streamer Cockpit
+
+A streamer-facing control surface — read aggregated chat and make decisions **without OBS open**. Open it on a second monitor or a tablet beside you:
+
+```
+http://<pi-ip>:8002/cockpit?secret=your-secret-here
+```
+
+It speaks the same WebSocket/HTTP protocol as the overlays, so nothing audience-facing changes. From here you can:
+
+- **Read live chat** (Twitch + YouTube), with per-source filter pills.
+- **Moderate** held messages inline — `✓ allow` / `✗ deny` (drives `/modqueue/{id}/approve|reject`, hence the `?secret=`).
+- **Toggle** alerts, alert audio, and the on-screen chat overlay; clear the alert queue.
+- **Glance at signal** — last follow/sub/raid/bits and Discord voice. Tiles are dismissible (state persists); panels collapse.
+
+Responsive: two columns on a wide monitor, collapsing to a chat-first view with a slide-in control drawer (⚙, badged with the pending-mod count) on narrow/tablet widths. The `?secret=` is only needed for the moderation buttons — everything else works without it.
+
+This is separate from the test dashboard at `/` (below), which stays a dev/QA tool.
+
+---
+
 ## Testing Off-Stream
 
 Open `http://<pi-ip>:8002/` on any device. The dashboard lets you fire test alerts, send fake chat messages, and simulate Discord voice joins — without `boneless_couch` running.

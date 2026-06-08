@@ -8,7 +8,7 @@
  *     "chat.message":  (data) => addMessage(data),
  *   });
  */
-function createVeilSocket(handlers) {
+function createVeilSocket(handlers, lifecycle = {}) {
   const url = `ws://${window.location.host}/ws`;
   let socket;
   let delay = 1000;
@@ -19,6 +19,7 @@ function createVeilSocket(handlers) {
     socket.onopen = () => {
       console.log("[veil] connected");
       delay = 1000;
+      lifecycle.onopen?.();
     };
 
     socket.onmessage = (event) => {
@@ -30,6 +31,7 @@ function createVeilSocket(handlers) {
 
     socket.onclose = () => {
       console.log(`[veil] disconnected — retrying in ${delay}ms`);
+      lifecycle.onclose?.();
       setTimeout(connect, delay);
       delay = Math.min(delay * 2, 30000);
     };

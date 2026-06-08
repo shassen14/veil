@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>veil · cockpit</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/overlays/static/css/cockpit.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <span class="brand">veil<b>·</b>cockpit</span>
+        <span class="signal-pill" id="signal">
+          <span class="dot"></span><span id="signal-label">OFFLINE</span>
+        </span>
+        <span class="spacer"></span>
+        <span class="clock" id="clock">--:--:--</span>
+      </header>
+
+      <main class="stage">
+        <!-- CHAT -->
+        <section class="chat-col">
+          <div class="chat-head">
+            <span class="label">chat</span>
+            <span class="pill tw on" id="src-twitch">twitch</span>
+            <span class="pill yt on" id="src-youtube">youtube</span>
+            <span class="spacer"></span>
+          </div>
+          <div class="chat-feed" id="chat">
+            <div class="empty" id="empty">waiting for chat…</div>
+          </div>
+          <button class="jump" id="jump">↓ new messages</button>
+        </section>
+
+        <!-- RAIL -->
+        <aside class="rail">
+          <!-- controls -->
+          <section class="panel" id="panel-controls">
+            <div class="panel-head"><h2>controls</h2><span class="chev">▾</span></div>
+            <div class="panel-body">
+              <div class="ctrl">
+                <span class="name">Alerts<small>on-screen subs, raids, bits</small></span>
+                <div class="switch" id="sw-alerts"></div>
+              </div>
+              <div class="ctrl">
+                <span class="name">Alert audio<small>alert sound effects</small></span>
+                <div class="switch" id="sw-audio"></div>
+              </div>
+              <div class="ctrl">
+                <span class="name">Chat overlay<small>visible to viewers</small></span>
+                <div class="switch" id="sw-chat"></div>
+              </div>
+              <button class="action-btn" id="clear-queue">clear alert queue</button>
+            </div>
+          </section>
+
+          <!-- stats -->
+          <section class="panel" id="panel-stats">
+            <div class="panel-head"><h2>signal</h2><span class="chev">▾</span></div>
+            <div class="panel-body">
+              <div class="tiles">
+                <div class="tile" id="tile-follower" data-key="follower">
+                  <span class="x">×</span><div class="k">last follow</div><div class="v dim" id="v-follower">—</div>
+                </div>
+                <div class="tile" id="tile-sub" data-key="sub">
+                  <span class="x">×</span><div class="k">last sub</div><div class="v dim" id="v-sub">—</div>
+                </div>
+                <div class="tile" id="tile-raid" data-key="raid">
+                  <span class="x">×</span><div class="k">last raid</div><div class="v dim" id="v-raid">—</div>
+                </div>
+                <div class="tile" id="tile-bits" data-key="bits">
+                  <span class="x">×</span><div class="k">last bits</div><div class="v dim" id="v-bits">—</div>
+                </div>
+              </div>
+              <button class="restore" id="restore">↺ restore hidden tiles</button>
+            </div>
+          </section>
+
+          <!-- discord vc -->
+          <section class="panel" id="panel-vc">
+            <div class="panel-head"><h2>discord voice</h2><span class="chev">▾</span></div>
+            <div class="panel-body">
+              <div class="vc" id="vc-list"><div class="vc-empty">empty</div></div>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <button class="drawer-toggle" id="drawer-toggle">
+      ⚙<span class="badge" id="pending-badge">0</span>
+    </button>
+    <div class="scrim" id="scrim"></div>
+
+    <script src="/overlays/static/js/veil.js"></script>
+    <script src="/overlays/static/js/chat.js"></script>
+    <script src="/overlays/static/js/cockpit.js"></script>
+  </body>
+</html>
