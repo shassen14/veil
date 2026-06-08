@@ -18,8 +18,19 @@
           <span class="dot"></span><span id="signal-label">OFFLINE</span>
         </span>
         <span class="spacer"></span>
+        <button class="lock" id="lock" title="moderation key — stored on this device only">
+          <span class="lock-ico">⚷</span><span id="lock-txt">locked</span>
+        </button>
         <span class="clock" id="clock">--:--:--</span>
       </header>
+
+      <div class="unlock" id="unlock">
+        <label for="secret-input">moderation key</label>
+        <input type="password" id="secret-input" placeholder="paste secret…"
+               autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <button id="secret-save">unlock</button>
+        <p>Kept in this browser only — never in the URL, on screen, or in logs.</p>
+      </div>
 
       <main class="stage">
         <!-- CHAT -->

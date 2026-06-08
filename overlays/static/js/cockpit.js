@@ -4,9 +4,41 @@
  * WS/HTTP protocol as the OBS overlays so no audience-facing change is needed.
  */
 
-const secret = new URLSearchParams(location.search).get("secret") || "";
 const $ = (id) => document.getElementById(id);
 const chatEl = $("chat");
+
+// ── auth: the moderation key, kept out of the URL ───────────────────────────
+// Reading chat / toggles need no key — only /modqueue approve|reject does.
+// The key lives in localStorage on this device and rides in the Authorization
+// header, never the URL (so it can't surface on stream or in server logs).
+const SECRET_KEY = "veil.cockpit.secret";
+
+(function migrateUrlSecret() {
+  const u = new URL(location.href);
+  if (!u.searchParams.has("secret")) return;
+  localStorage.setItem(SECRET_KEY, u.searchParams.get("secret"));
+  u.searchParams.delete("secret");
+  history.replaceState(null, "", u.pathname + u.search + u.hash); // scrub it
+})();
+
+let secret = localStorage.getItem(SECRET_KEY) || "";
+
+function paintLock() {
+  $("lock").classList.toggle("unlocked", !!secret);
+  $("lock-txt").textContent = secret ? "unlocked" : "locked";
+}
+function setSecret(v) {
+  secret = (v || "").trim();
+  if (secret) localStorage.setItem(SECRET_KEY, secret);
+  else localStorage.removeItem(SECRET_KEY);
+  paintLock();
+}
+function openUnlock() {
+  $("unlock").classList.add("show");
+  $("secret-input").value = "";
+  $("secret-input").focus();
+}
+function closeUnlock() { $("unlock").classList.remove("show"); }
 
 // Reader keeps far more history than the overlay, never fades.
 const chat = createChatManager(chatEl, {
@@ -63,6 +95,7 @@ function addPending(data) {
 }
 
 function moderate(id, action) {
+  if (!secret) { openUnlock(); return; } // need the key before we can act
   fetch(`/modqueue/${id}/${action}`, {
     method: "POST",
     headers: { Authorization: "Bearer " + secret },
@@ -203,6 +236,14 @@ const toggleRail = (open) => document.body.classList.toggle("rail-open", open);
 $("drawer-toggle").onclick = () => toggleRail(!document.body.classList.contains("rail-open"));
 $("scrim").onclick = () => toggleRail(false);
 
+// lock: click to enter the key (when locked) or clear it (when unlocked)
+$("lock").onclick = () => (secret ? setSecret("") : openUnlock());
+$("secret-save").onclick = () => { setSecret($("secret-input").value); closeUnlock(); };
+$("secret-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("secret-save").click();
+  if (e.key === "Escape") closeUnlock();
+});
+
 function paintPendingBadge() {
   const n = chat.messageMap.size && [...document.querySelectorAll(".msg.pending")].length;
   const b = $("pending-badge");
@@ -265,3 +306,4 @@ createVeilSocket({
 // initial tile visibility from storage
 ["follower", "sub", "raid", "bits"].forEach(paintTile);
 refreshRestore();
+paintLock();
