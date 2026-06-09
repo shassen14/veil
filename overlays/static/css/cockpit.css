@@ -211,6 +211,12 @@ body {
 .msg .author { font-weight: 600; margin-right: 2px; }
 .msg .emote { height: 26px; width: auto; vertical-align: middle; margin: 0 1px; }
 
+/* the bot's own replies — feedback that a command ran */
+.msg.msg-bot {
+  background: var(--signal-soft);
+  border-left-color: var(--signal);
+}
+
 /* pending moderation */
 .msg.pending {
   background: rgba(255, 176, 46, 0.06);

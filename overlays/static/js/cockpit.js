@@ -47,6 +47,7 @@ function closeUnlock() { $("unlock").classList.remove("show"); }
 const chat = createChatManager(chatEl, {
   maxMessages: 250,
   disableFade: true,
+  showBot: true, // the streamer wants to see the bot's own command replies here
   chatSources: { twitch: true, youtube: true },
 });
 
