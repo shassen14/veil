@@ -34,7 +34,10 @@ async def dispatch(event: Event) -> None:
     log.info("event received: %s", t)
 
     if t == "twitch.chat.message":
-        await manager.broadcast({"type": "chat.message", "data": {**p, "source": "twitch"}})
+        # The bot's own replies go to a cockpit-only channel so they never reach
+        # the on-stream overlay, which doesn't subscribe to "chat.bot.message".
+        msg_type = "chat.bot.message" if p.get("is_bot") else "chat.message"
+        await manager.broadcast({"type": msg_type, "data": {**p, "source": "twitch"}})
 
     elif t == "youtube.chat.message":
         await manager.broadcast({"type": "chat.message", "data": {**p, "source": "youtube"}})

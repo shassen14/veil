@@ -61,7 +61,6 @@ function createChatManager(chatEl, opts = {}) {
   let fadeTimeout = opts.fadeTimeout ?? 0;
   const disableFade = opts.disableFade ?? false;
   const chatSources = opts.chatSources ? { ...opts.chatSources } : null;
-  const showBot = opts.showBot ?? false; // bot replies show in the cockpit, not the overlay
 
   function _trim() {
     if (messages.length > maxMessages) {
@@ -82,7 +81,6 @@ function createChatManager(chatEl, opts = {}) {
   }
 
   function addMessage(data) {
-    if (data.is_bot && !showBot) return;
     if (chatSources && data.source && chatSources[data.source] === false) return;
     if (data.message_id && messageMap.has(data.message_id)) return;
     const el = buildMessageEl(data);

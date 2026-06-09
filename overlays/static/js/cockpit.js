@@ -47,7 +47,6 @@ function closeUnlock() { $("unlock").classList.remove("show"); }
 const chat = createChatManager(chatEl, {
   maxMessages: 250,
   disableFade: true,
-  showBot: true, // the streamer wants to see the bot's own command replies here
   chatSources: { twitch: true, youtube: true },
 });
 
@@ -316,6 +315,7 @@ createVeilSocket({
   },
   "emotes.update": (d) => applyEmotes(d),
   "chat.message": (d) => chat.addMessage(d),
+  "chat.bot.message": (d) => chat.addMessage(d), // bot replies — cockpit-only feedback
   "chat.message.delete": (d) => chat.deleteMessage(d.message_id),
   "chat.clear_user": (d) => chat.clearUserMessages(d.username),
   "modqueue.pending": (d) => { addPending(d); paintPendingBadge(); },
