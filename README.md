@@ -86,9 +86,12 @@ http://<pi-ip>:8002/cockpit
 It speaks the same WebSocket/HTTP protocol as the overlays, so nothing audience-facing changes. From here you can:
 
 - **Read live chat** (Twitch + YouTube), with per-source filter pills.
+- **Send chat / run commands** — the composer at the bottom posts to Twitch and/or YouTube (pick targets with the `TW`/`YT` toggles). A plain message is sent as the bot; a `!command` (e.g. `!lc`, `!game`) is dispatched into the bot. Requires the moderation key (below).
 - **Moderate** held messages inline — `✓ allow` / `✗ deny`.
 - **Toggle** alerts, alert audio, and the on-screen chat overlay; clear the alert queue.
 - **Glance at signal** — last follow/sub/raid/bits and Discord voice. Tiles are dismissible (state persists); panels collapse.
+
+> **Sending requires `boneless_couch`** — veil holds no platform credentials. `POST /chat/send` broadcasts a `chat.send.request` over the WS; the couchd bots (already connected for the modqueue) do the actual sending. A few Twitch commands that need live API objects (`!ad`, `!so`, `!clip`) are refused from the cockpit with a chat notice — run those in Twitch chat. All YouTube commands work. Your own sent messages won't echo back into the reader (the bot ignores its own chat); a cleared input box is the send confirmation.
 
 Responsive: two columns on a wide monitor, collapsing to a chat-first view with a slide-in control drawer (⚙, badged with the pending-mod count) on narrow/tablet widths.
 

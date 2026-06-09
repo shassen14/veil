@@ -26,6 +26,9 @@ let secret = localStorage.getItem(SECRET_KEY) || "";
 function paintLock() {
   $("lock").classList.toggle("unlocked", !!secret);
   $("lock-txt").textContent = secret ? "unlocked" : "locked";
+  document.body.classList.toggle("locked", !secret);
+  const input = $("composer-input");
+  if (input) input.placeholder = secret ? "Send a message or !command…" : "🔒 unlock to send…";
 }
 function setSecret(v) {
   secret = (v || "").trim();
@@ -236,6 +239,36 @@ const toggleRail = (open) => document.body.classList.toggle("rail-open", open);
 $("drawer-toggle").onclick = () => toggleRail(!document.body.classList.contains("rail-open"));
 $("scrim").onclick = () => toggleRail(false);
 
+// ── composer: send chat / run commands (needs the key) ──────────────────────
+const TARGETS_KEY = "veil.cockpit.targets";
+let targets = JSON.parse(localStorage.getItem(TARGETS_KEY) || '{"twitch":true,"youtube":true}');
+
+function paintTargets() {
+  for (const t of ["twitch", "youtube"]) $("tgt-" + t).classList.toggle("on", !!targets[t]);
+}
+for (const t of ["twitch", "youtube"]) {
+  $("tgt-" + t).onclick = () => {
+    targets[t] = !targets[t];
+    localStorage.setItem(TARGETS_KEY, JSON.stringify(targets));
+    paintTargets();
+  };
+}
+
+$("composer").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = $("composer-input");
+  const text = input.value.trim();
+  if (!text) return;
+  if (!secret) { openUnlock(); return; }       // privileged: needs the key
+  const to = ["twitch", "youtube"].filter((t) => targets[t]);
+  if (!to.length) return;
+  fetch("/chat/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + secret },
+    body: JSON.stringify({ text, targets: to }),
+  }).then((r) => { if (r.ok) input.value = ""; }).catch(() => {});
+});
+
 // lock: click to enter the key (when locked) or clear it (when unlocked)
 $("lock").onclick = () => (secret ? setSecret("") : openUnlock());
 $("secret-save").onclick = () => { setSecret($("secret-input").value); closeUnlock(); };
@@ -306,4 +339,5 @@ createVeilSocket({
 // initial tile visibility from storage
 ["follower", "sub", "raid", "bits"].forEach(paintTile);
 refreshRestore();
+paintTargets();
 paintLock();

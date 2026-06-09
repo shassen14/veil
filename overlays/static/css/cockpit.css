@@ -246,7 +246,7 @@ body {
 
 .jump {
   position: absolute;
-  bottom: 18px;
+  bottom: 74px;
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   font-family: var(--mono);
@@ -264,6 +264,50 @@ body {
   backdrop-filter: blur(6px);
 }
 .jump.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+
+/* composer — send chat / run commands */
+.composer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-raised);
+}
+.targets { display: flex; gap: 4px; flex: 0 0 auto; }
+.tgt {
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+  width: 34px; padding: 7px 0; text-align: center;
+  border: 1px solid var(--line-hi); border-radius: 6px;
+  background: var(--bg-tile); color: var(--text-faint); cursor: pointer;
+  transition: all 0.14s ease;
+}
+.tgt.tw.on { color: var(--twitch); border-color: rgba(169,112,255,0.55); background: rgba(169,112,255,0.1); }
+.tgt.yt.on { color: var(--youtube); border-color: rgba(255,77,77,0.55); background: rgba(255,77,77,0.1); }
+.tgt:not(.on) { opacity: 0.5; }
+
+.composer input {
+  flex: 1; min-width: 0;
+  padding: 9px 12px;
+  background: var(--bg); border: 1px solid var(--line-hi); border-radius: 8px;
+  color: var(--text); font-family: var(--sans); font-size: 14px;
+}
+.composer input::placeholder { color: var(--text-faint); }
+.composer input:focus { outline: none; border-color: rgba(0,255,102,0.45); }
+
+.send-btn {
+  flex: 0 0 auto;
+  padding: 9px 16px; border-radius: 8px; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--signal); background: var(--signal-soft); border: 1px solid rgba(0,255,102,0.45);
+  transition: all 0.14s ease;
+}
+.send-btn:hover { background: var(--signal); color: #04140a; }
+.send-btn:disabled { opacity: 0.4; cursor: default; background: var(--bg-tile); color: var(--text-faint); border-color: var(--line-hi); }
+
+/* locked: the composer hints that a key is needed */
+body.locked .composer input::placeholder { color: var(--warn); opacity: 0.8; }
 
 /* ── rail ──────────────────────────────────────────────────────────────── */
 

@@ -45,6 +45,16 @@
             <div class="empty" id="empty">waiting for chat…</div>
           </div>
           <button class="jump" id="jump">↓ new messages</button>
+
+          <form class="composer" id="composer" autocomplete="off">
+            <div class="targets" id="targets">
+              <button type="button" class="tgt tw on" id="tgt-twitch" data-t="twitch" title="send to Twitch">TW</button>
+              <button type="button" class="tgt yt on" id="tgt-youtube" data-t="youtube" title="send to YouTube">YT</button>
+            </div>
+            <input id="composer-input" placeholder="Send a message or !command…"
+                   autocomplete="off" autocapitalize="sentences" spellcheck="true" maxlength="450" />
+            <button type="submit" class="send-btn" id="send-btn">send</button>
+          </form>
         </section>
 
         <!-- RAIL -->

@@ -11,3 +11,4 @@ class WsMessageType(StrEnum):
     SCENE_SWITCH = "scene.switch"
     STATE_SYNC = "state.sync"
     CONFIG_UPDATE = "config.update"
+    CHAT_SEND_REQUEST = "chat.send.request"
