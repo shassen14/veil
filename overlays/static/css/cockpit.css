@@ -239,6 +239,21 @@ body {
 .mod-btn.deny { border: 1px solid rgba(255,69,58,0.55); color: var(--deny); }
 .mod-btn.deny:hover { background: var(--deny); color: #1a0403; }
 
+/* per-message moderation controls — only shown on hover so the feed stays clean */
+.mod-actions.hover-only { opacity: 0; transition: opacity 0.12s ease; }
+.msg:hover .mod-actions.hover-only,
+.mod-actions.hover-only:focus-within { opacity: 1; }
+.mod-btn.delete { border: 1px solid var(--line-hi); color: var(--text-dim); }
+.mod-btn.delete:hover { background: var(--line-hi); color: var(--text); }
+.mod-btn.timeout { border: 1px solid rgba(255,176,46,0.5); color: var(--warn); }
+.mod-btn.timeout:hover { background: var(--warn); color: #1a1203; }
+.mod-btn.ban { border: 1px solid rgba(255,69,58,0.55); color: var(--deny); }
+.mod-btn.ban:hover { background: var(--deny); color: #1a0403; }
+
+/* clickable links in chat (cockpit only) */
+.chat-link { color: var(--signal); text-decoration: underline; word-break: break-all; }
+.chat-link:hover { filter: brightness(1.2); }
+
 .msg.fading { opacity: 0; transition: opacity 0.4s ease; }
 
 .empty {

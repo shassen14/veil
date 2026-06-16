@@ -6,10 +6,26 @@
 
 const emoteMap = new Map();
 
+// Links are opt-in: only the cockpit calls enableLinks(). The on-stream overlay
+// keeps rendering plain text so nothing on stream becomes clickable/styled.
+let _linkify = false;
+function enableLinks() { _linkify = true; }
+const _URL_RE = /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i;
+
 function applyEmotes(map) {
   emoteMap.clear();
   for (const [name, url] of Object.entries(map || {}))
     emoteMap.set(name, url);
+}
+
+function _linkEl(token) {
+  const a = document.createElement("a");
+  a.className = "chat-link";
+  a.href = token.startsWith("http") ? token : `https://${token}`;
+  a.textContent = token;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  return a;
 }
 
 function _emoteImg(src, alt) {
@@ -24,7 +40,9 @@ function _appendWords(container, text) {
   for (const token of text.split(/(\s+)/)) {
     if (!token) continue;
     const url = emoteMap.get(token);
-    container.appendChild(url ? _emoteImg(url, token) : document.createTextNode(token));
+    if (url) container.appendChild(_emoteImg(url, token));
+    else if (_linkify && _URL_RE.test(token)) container.appendChild(_linkEl(token));
+    else container.appendChild(document.createTextNode(token));
   }
 }
 

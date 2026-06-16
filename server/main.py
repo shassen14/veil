@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import config, reload as reload_config
 from .obs import obs_client
-from .routes import alerts, chat, ingest, modqueue, scenes, status, test
+from .routes import alerts, chat, ingest, moderation, modqueue, scenes, status, test
 from .state import state
 from .ws_manager import manager
 
@@ -58,6 +58,7 @@ app.mount("/media", StaticFiles(directory=_ROOT / "media"), name="media")
 # API routes
 app.include_router(ingest.router)
 app.include_router(modqueue.router)
+app.include_router(moderation.router)
 app.include_router(alerts.router)
 app.include_router(chat.router)
 app.include_router(scenes.router)

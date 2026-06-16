@@ -43,6 +43,8 @@ function openUnlock() {
 }
 function closeUnlock() { $("unlock").classList.remove("show"); }
 
+enableLinks(); // URLs in chat become clickable (cockpit only)
+
 // Reader keeps far more history than the overlay, never fades.
 const chat = createChatManager(chatEl, {
   maxMessages: 250,
@@ -78,8 +80,13 @@ new MutationObserver(() => {
 
 // ── pending moderation (mirrors overlays/chat.html) ─────────────────────────
 
+// Keep the full payload of held messages so an approved one can gain the same
+// delete/timeout/ban controls a normal message has.
+const pendingData = new Map();
+
 function addPending(data) {
   if (chat.messageMap.has(data.message_id)) return;
+  pendingData.set(data.message_id, data);
   const el = buildMessageEl(data);
   el.classList.add("pending");
 
@@ -106,14 +113,77 @@ function moderate(id, action) {
 }
 
 function onDecision(data) {
+  const held = pendingData.get(data.message_id);
+  pendingData.delete(data.message_id);
   const el = chat.messageMap.get(data.message_id);
   if (!el) return;
   if (data.decision === "approve") {
     el.classList.remove("pending");
     el.querySelector(".mod-actions")?.remove();
+    attachModControls(held); // now a normal message — give it full controls
   } else {
     chat.deleteMessage(data.message_id);
   }
+}
+
+// ── per-message moderation: delete / timeout / ban (Twitch) ─────────────────
+// Controls ride on every Twitch message, not just engine-held ones. The action
+// is relayed to boneless_couch; the message disappears via the delete/clear_user
+// events Twitch emits afterwards, so there's nothing to remove optimistically.
+const TIMEOUTS = [["10m", 600], ["1h", 3600], ["24h", 86400]];
+
+function modAction(body) {
+  if (!secret) { openUnlock(); return; } // privileged: needs the key
+  fetch("/moderate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + secret },
+    body: JSON.stringify(body),
+  }).catch(() => {});
+}
+
+function attachModControls(data) {
+  if (!data || (data.source || data.platform) !== "twitch" || data.is_bot) return;
+  const el = chat.messageMap.get(data.message_id);
+  if (!el || el.querySelector(".mod-actions")) return;
+
+  const actions = document.createElement("span");
+  actions.className = "mod-actions hover-only";
+
+  const del = document.createElement("button");
+  del.className = "mod-btn delete";
+  del.textContent = "🗑";
+  del.title = "delete message";
+  del.onclick = () => modAction({ action: "delete", platform: "twitch", message_id: data.message_id });
+  actions.appendChild(del);
+
+  if (data.user_id) {
+    for (const [label, seconds] of TIMEOUTS) {
+      const b = document.createElement("button");
+      b.className = "mod-btn timeout";
+      b.textContent = label;
+      b.title = `timeout ${label}`;
+      b.onclick = () => modAction({
+        action: "timeout", platform: "twitch",
+        user_id: data.user_id, username: data.username, duration: seconds,
+      });
+      actions.appendChild(b);
+    }
+    const ban = document.createElement("button");
+    ban.className = "mod-btn ban";
+    ban.textContent = "⛔";
+    ban.title = "ban permanently";
+    ban.onclick = () => {
+      if (confirm(`Ban ${data.display_name || data.username} permanently?`))
+        modAction({ action: "ban", platform: "twitch", user_id: data.user_id, username: data.username });
+    };
+    actions.appendChild(ban);
+  }
+  el.appendChild(actions);
+}
+
+function addLiveMessage(d) {
+  chat.addMessage(d);
+  attachModControls(d);
 }
 
 // ── controls: source pills + switches ───────────────────────────────────────
@@ -314,12 +384,12 @@ createVeilSocket({
     paintPendingBadge();
   },
   "emotes.update": (d) => applyEmotes(d),
-  "chat.message": (d) => chat.addMessage(d),
+  "chat.message": (d) => addLiveMessage(d),
   "chat.bot.message": (d) => chat.addMessage(d), // bot replies — cockpit-only feedback
   "chat.message.delete": (d) => chat.deleteMessage(d.message_id),
   "chat.clear_user": (d) => chat.clearUserMessages(d.username),
   "modqueue.pending": (d) => { addPending(d); paintPendingBadge(); },
-  "modqueue.resolved": (d) => { chat.deleteMessage(d.message_id); paintPendingBadge(); },
+  "modqueue.resolved": (d) => { pendingData.delete(d.message_id); chat.deleteMessage(d.message_id); paintPendingBadge(); },
   "modqueue.decision": (d) => { onDecision(d); paintPendingBadge(); },
   "chat.source.toggle": (d) => {
     ui[d.platform] = d.enabled;
