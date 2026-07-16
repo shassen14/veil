@@ -90,6 +90,13 @@ class TwitchFollowerPayload(BaseModel):
     display_name: str
 
 
+class StreamElementsTipPayload(BaseModel):
+    username: str
+    amount: float
+    currency: str = "USD"
+    message: str = ""
+
+
 class TwitchChatMessagePayload(BaseModel):
     username: str
     display_name: str
@@ -188,6 +195,7 @@ EVENT_TYPES: dict[str, type[BaseModel]] = {
     "twitch.raid": TwitchRaidPayload,
     "twitch.channel_point_redeem": TwitchChannelPointRedeemPayload,
     "twitch.follower": TwitchFollowerPayload,
+    "streamelements.tip": StreamElementsTipPayload,
     "twitch.chat.message": TwitchChatMessagePayload,
     "twitch.chat.message.delete": ChatMessageDeletePayload,
     "twitch.chat.clear_user": ChatClearUserPayload,

@@ -46,6 +46,9 @@ cooldown_s = 30
 duration = 5
 cooldown_s = 10
 
+[alerts.tip]
+duration = 6
+
 [scenes]
 default = "brb"
 

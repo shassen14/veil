@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 log = logging.getLogger(__name__)
 
 from ..config import config
+from ..constants import MONEY_ALERT_TYPES, AlertType
 from ..events import Event
 from ..media import pick_audio, pick_clip
 from ..state import state
@@ -87,6 +88,11 @@ async def dispatch(event: Event) -> None:
             _record_trigger("follower")
             await manager.broadcast({"type": "alert.trigger", "data": _alert_data("follower", p)})
 
+    elif t == "streamelements.tip":
+        if state.alerts_enabled and not _check_cooldown(AlertType.TIP):
+            _record_trigger(AlertType.TIP)
+            await manager.broadcast({"type": "alert.trigger", "data": _alert_data(AlertType.TIP, p)})
+
     elif t == "modqueue.pending":
         state.pending_messages[p["message_id"]] = p
         await manager.broadcast({"type": "modqueue.pending", "data": p})
@@ -157,7 +163,13 @@ async def _push_discord_voice() -> None:
 
 
 def _check_cooldown(alert_type: str) -> bool:
-    """Returns True if the alert should be suppressed (within cooldown)."""
+    """Returns True if the alert should be suppressed (within cooldown).
+
+    Money alerts (tips, bits, subs) are never suppressed — paying viewers
+    always get their on-stream moment while alerts are enabled.
+    """
+    if alert_type in MONEY_ALERT_TYPES:
+        return False
     cooldown = config.get("alerts", {}).get(alert_type, {}).get("cooldown_s", 0)
     if cooldown <= 0:
         return False

@@ -112,6 +112,7 @@
         bits: "Bits",
         channel_point: "Channel Point",
         follower: "New Follower",
+        tip: "Tip",
       };
 
       function buildHeadline(type, data) {
@@ -132,6 +133,8 @@
             return `${data.display_name} · ${data.reward_title}`;
           case "follower":
             return data.display_name;
+          case "tip":
+            return `${data.username} · ${Number(data.amount).toFixed(2)} ${data.currency}`;
           default:
             return data.display_name || type;
         }
@@ -141,6 +144,7 @@
         if (type === "resub" && data.message) return data.message;
         if (type === "bits" && data.message) return data.message;
         if (type === "channel_point" && data.user_input) return data.user_input;
+        if (type === "tip" && data.message) return data.message;
         return "";
       }
 
